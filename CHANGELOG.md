@@ -30,6 +30,8 @@ Evolutions :
 * Régularisation sur l'ajout des nouveaux genres et des migrations de données
 * Ajout du champ numWinPrev pour les CR de commissions
 * Ajout du chargement en ajax asynchrone du tableau de bord : induit des lenteurs importantes lorsqu'ils y a trop d'éléments
+* Si clé IGN entrée, remplacement du geocoding par IGN avec carte
+* Ajout de click sur la carte IGN pour placer le POI précisément
 
 Corrections :
 * Impossibilité de créer des dossiers en décembre : mauvais validateur de date
