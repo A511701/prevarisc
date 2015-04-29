@@ -195,17 +195,10 @@ class DossierController extends Zend_Controller_Action
 
             $service_etablissement = new Service_Etablissement();
             $etablissementInfos = $service_etablissement->get($this->_getParam("idEtablissement"));
-            if ($etablissementInfos['general']['ID_DOSSIER_DONNANT_AVIS'] != null) {
-                $etablissementInfos['avisExploitation'] = $DBdossier->getAvisDossier($etablissementInfos['general']['ID_DOSSIER_DONNANT_AVIS']);
-            }
+            
             $this->view->etablissementInfos = $etablissementInfos;
 
-            if ($this->view->etablissementInfos['general']['ID_DOSSIER_DONNANT_AVIS'] != null) {
-                $avisExploitationEtab = $DBdossier->getAvisDossier($this->view->etablissementInfos['general']['ID_DOSSIER_DONNANT_AVIS']);
-                $this->view->avisExploitationEtab = $avisExploitationEtab['AVIS_DOSSIER'];
-            } else {
-                $this->view->avisExploitationEtab = 3;
-            }
+            $this->view->avisExploitationEtab = $etablissementInfos['avis'];
         } elseif ($this->_getParam("idDossier")) {
             $tabEtablissement = $DBdossier->getEtablissementDossier((int) $this->_getParam("idDossier"));
             $this->view->listeEtablissement = $tabEtablissement;
@@ -293,13 +286,7 @@ class DossierController extends Zend_Controller_Action
             $idEtablissement = $this->_getParam("id_etablissement");
 
             $etablissementInfos = $service_etablissement->get($this->view->idEtablissement);
-            $ID_DOSSIER_DONNANT_AVIS = $etablissementInfos['general']['ID_DOSSIER_DONNANT_AVIS'];
-            if ($ID_DOSSIER_DONNANT_AVIS != null) {
-                $avisExploitationEtab = $DBdossier->getAvisDossier($ID_DOSSIER_DONNANT_AVIS);
-                $this->view->avisExploitationEtab = $avisExploitationEtab['AVIS_DOSSIER'];
-            } else {
-                $this->view->avisExploitationEtab = 3;
-            }
+            $this->view->avisExploitationEtab = $etablissementInfos['avis'];
         } elseif ((int) $this->_getParam("id")) {
             $tabEtablissement = $DBdossier->getEtablissementDossier((int) $this->_getParam("id"));
             $this->view->listeEtablissement = $tabEtablissement;
@@ -313,12 +300,7 @@ class DossierController extends Zend_Controller_Action
                 $etablissementInfos = $service_etablissement->get($idEtablissement);
                 $ID_DOSSIER_DONNANT_AVIS = $etablissementInfos['general']['ID_DOSSIER_DONNANT_AVIS'];
 
-                if ($ID_DOSSIER_DONNANT_AVIS != null) {
-                    $avisExploitationEtab = $DBdossier->getAvisDossier($ID_DOSSIER_DONNANT_AVIS);
-                    $this->view->avisExploitationEtab = $avisExploitationEtab['AVIS_DOSSIER'];
-                } else {
-                    $this->view->avisExploitationEtab = 3;
-                }
+                $this->view->avisExploitationEtab = $etablissementInfos['avis'];
             }
         }
 
