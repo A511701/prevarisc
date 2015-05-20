@@ -32,6 +32,9 @@ Evolutions :
 * Ajout du chargement en ajax asynchrone du tableau de bord : induit des lenteurs importantes lorsqu'ils y a trop d'éléments
 * Si clé IGN entrée, remplacement du geocoding par IGN avec carte
 * Ajout de click sur la carte IGN pour placer le POI précisément
+* Ajout du grade dans la génération des PV et ODJ pour les préventionnistes attachés au dossier
+* Le bloc des établissements sans prochaines visites périodiques programmées tient maintenant compte les dossiers de type avant ouverture
+* Ajout de la possibilité de replier les blocs du tableau de bord
 
 Corrections :
 * Impossibilité de créer des dossiers en décembre : mauvais validateur de date
