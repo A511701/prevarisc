@@ -52,9 +52,6 @@ $application = new Zend_Application('production', array(
         'password' => getenv('PREVARISC_LDAP_ENABLED') ? getenv('PREVARISC_LDAP_PASSWORD') : '',
         'baseDn' => getenv('PREVARISC_LDAP_ENABLED') ? getenv('PREVARISC_LDAP_BASEDN') : '',
     ),
-    'cache' => array(
-        'lifetime' => getenv('PREVARISC_CACHE_LIFETIME'),
-    ),
     'security' => array(
         'salt' => getenv('PREVARISC_SECURITY_SALT'),
     ),

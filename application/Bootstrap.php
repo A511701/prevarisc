@@ -31,8 +31,22 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     {
         return Zend_Cache::factory('Core', 'APC', array(
             'lifetime' => getenv('PREVARISC_CACHE_LIFETIME'),
-            'cache_id_prefix' => 'prevarisc'
+            'cache_id_prefix' => 'prevarisc',
         ));
+    }
+    
+    /**
+     * Initialisation du cache APC des métadonnées
+     */
+    protected function _initCacheMetadata()
+    {
+        if (getenv('PREVARISC_DEBUG_ENABLED') != '1') {
+            return Zend_Db_Table_Abstract::setDefaultMetadataCache(Zend_Cache::factory('Core', 'APC', array(
+                'lifetime' => getenv('PREVARISC_CACHE_LIFETIME'),
+                'cache_id_prefix' => 'metadata',
+                'automatic_serialization' => true,
+            )));
+        }
     }
 
     /**
