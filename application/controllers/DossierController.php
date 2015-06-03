@@ -2344,6 +2344,7 @@ class DossierController extends Zend_Controller_Action
             $newPrescDossier->ID_PRESCRIPTION_TYPE = $idPrescType;
             $newPrescDossier->save();
 
+            $this->view->idDossier = $idDossier;
             $this->view->idPrescriptionDossier = $newPrescDossier->ID_PRESCRIPTION_DOSSIER;
 
             //On recupere les informations de la prescription type pour l'afficher dans la liste

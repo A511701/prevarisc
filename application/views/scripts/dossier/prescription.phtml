@@ -384,22 +384,6 @@ $(document).ready(function(){
 		}
 	});
 	
-	$(".edit").live('click',function(){
-		var tabId = $(this).attr('id').split('_');
-		var idPrescDossier = tabId[1];
-		var numPrecs = $(this).parent().prev().prev().html();
-		$.ajax({
-			type: "POST",
-			url: "/dossier/prescriptionedit",
-			data: "&idPrescDossier="+idPrescDossier+"&idDossier="+$("#idDossier").val()+"&numPresc="+numPrecs,
-			success: function(msg){
-				dialogPrescEdit.html(msg);
-				dialogPrescEdit.dialog("open");
-			}
-		});
-		return false;
-	});
-	
 //Suppression d'une prescription
 	$(".deletePrescDossier").live('click',function(){
 		$(this).hide();
@@ -428,4 +412,5 @@ $(document).ready(function(){
 		return false;
 	});
 });
+
 </script>

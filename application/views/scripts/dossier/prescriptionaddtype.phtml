@@ -21,7 +21,9 @@ if(!$this->edit)
 		{
 			echo "<td rowspan='".$nbAssoc."' class='span1 numPresc'>".$this->numPresc."</td>";			
 			echo "<td rowspan='".$nbAssoc."' class='span6'>".nl2br($this->libelle)."</td>";
-			echo "<td class='span1' rowspan='".$nbAssoc."'><button class='edit btn' id='prescDossier_".$this->idPrescriptionDossier."'>Modifier</button></td>";
+                        echo "<td class='span1' rowspan='".$nbAssoc."'>";
+                        echo "<a class='btn' href='".$this->url(array('controller' => 'dossier', 'action' => 'prescription-edit', 'id-prescription' => $this->idPrescriptionDossier, 'id' => $this->idDossier))."' >Modifier</a>";
+			echo "</td>";
 			$cpt = false;
 		}
 		echo "
