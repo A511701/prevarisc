@@ -9,7 +9,7 @@ defined('DS') || define('DS', DIRECTORY_SEPARATOR);
 defined('APPLICATION_PATH') || define('APPLICATION_PATH', getenv('PREVARISC_APPLICATION_PATH') ? getenv('PREVARISC_APPLICATION_PATH') : dirname(__FILE__).DS.'..'.DS.'application');
 
 // Define path to application directory
-defined('DATA_PATH') || define('DATA_PATH', getenv('PREVARISC_DATA_PATH') ?  getenv('PREVARISC_DATA_PATH') : DS.'data');
+defined('DATA_PATH') || define('DATA_PATH', getenv('PREVARISC_DATA_PATH') ?  getenv('PREVARISC_DATA_PATH') : '/data');
 
 // Define path to application directory
 defined('REAL_DATA_PATH') || define('REAL_DATA_PATH', getenv('PREVARISC_REAL_DATA_PATH') ? getenv('PREVARISC_REAL_DATA_PATH') : dirname(__FILE__).DS.'..'.DS.'public'.DS.'data');
