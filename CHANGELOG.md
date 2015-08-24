@@ -72,6 +72,7 @@ Corrections :
 * Correction sur la génération des ODJ et convocation : la balise nomPereEtab reprenait le nom du précédent établissement père
 * Correction du préventionniste sans civilite qui n'apparaît pas sur les dossiers
 * Correction de la non apparition du type EM, EP, GEEM sur les activités des membres de commission
+* Correction de la taille des rubriques ICPE pour les petits écrans (supperposition gênante)
 
 ## 2.3
 
