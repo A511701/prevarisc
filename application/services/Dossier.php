@@ -503,4 +503,37 @@ class Service_Dossier
             $num++;
         }
     }
+    
+    public function isDossierDonnantAvis($idNature) {
+        
+        return 
+            //Cas d'une étude uniquement dans le cas d'une levée de reserve
+            in_array($idNature, array(19, 7))
+            //Cas d'une viste uniquement dans le cas d'une VP, inopinée, avant ouverture ou controle
+            || in_array($idNature, array(21, 23, 24, 47))
+            //Cas d'un groupe deviste uniquement dans le cas d'une VP, inopinée, avant ouverture ou controle
+            || in_array($idNature, array(26, 28, 29, 48));        
+    }
+    
+    public function saveDossierDonnantAvis($idDossier, $listeEtab, $cache, $repercuterAvis = false) {
+        $dbEtab = new Model_DbTable_Etablissement();
+        $service_etablissement = new Service_Etablissement();
+
+        foreach ($listeEtab as $val => $ue) {
+            $etabToEdit = $dbEtab->find($ue['ID_ETABLISSEMENT'])->current();
+            $etabToEdit->ID_DOSSIER_DONNANT_AVIS = $idDossier;
+            $etabToEdit->save();
+            $cache->remove('etablissement_id_'.$ue['ID_ETABLISSEMENT']);
+
+            if ($repercuterAvis) {
+                $etablissementInfos = $service_etablissement->get($ue['ID_ETABLISSEMENT']);
+                foreach ($etablissementInfos["etablissement_lies"] as $etabEnfant) {
+                    $etabToEdit = $dbEtab->find($etabEnfant["ID_ETABLISSEMENT"])->current();
+                    $etabToEdit->ID_DOSSIER_DONNANT_AVIS = $idDossier;
+                    $etabToEdit->save();
+                    $cache->remove('etablissement_id_'.$etabEnfant['ID_ETABLISSEMENT']);
+                }
+            }
+        }
+    }
 }
