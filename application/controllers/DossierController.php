@@ -1505,10 +1505,17 @@ class DossierController extends Zend_Controller_Action
             // par exemple dans le cas des dossiers de levée d'avis défavorable
             // qui impactent plusieurs établissement
             $service_dossier = new Service_Dossier();
+            $DB_dossier = new Model_DbTable_Dossier();
             $cache = Zend_Controller_Front::getInstance()->getParam('bootstrap')->getResource('cache');
-            $service_dossier->saveDossierDonnantAvis($this->_getParam("idDossier"), array(array(
-                        'ID_ETABLISSEMENT' => $this->_getParam('idSelect'),
-            )), $cache);
+            
+            $idNature = $DB_dossier->getNatureDossier($this->_getParam("idDossier"));
+            $idNature = isset($idNature['ID_NATURE']) ? $idNature['ID_NATURE'] : 0;
+            
+            if ($service_dossier->isDossierDonnantAvis($idNature)) {
+                $service_dossier->saveDossierDonnantAvis($this->_getParam("idDossier"), array(array(
+                            'ID_ETABLISSEMENT' => $this->_getParam('idSelect'),
+                )), $cache);
+            }
             
             $this->view->libelleEtab = $this->_getParam("libelleSelect");
             $this->view->infosEtab = $newEtabDossier;
