@@ -163,7 +163,6 @@ class Plugin_ACL extends Zend_Controller_Plugin_Abstract
 
                         $resource_imploded = implode($resource_exploded, '_');
                         $list_resources_finale =  array($resource_imploded);
-                        
                         $resources = new ResourceContainer($list_resources_finale);
                         foreach($resources as $r) {
                             if(!$acl->has($r)) {
@@ -177,7 +176,7 @@ class Plugin_ACL extends Zend_Controller_Plugin_Abstract
 
                     $privileges = $privileges_dbtable->fetchAll('id_resource = ' . $resource['id_resource'] )->toArray();
 
-                    foreach($list_resources_finale as $resource_finale) {
+                    foreach($resources as $resource_finale) {
                         foreach($privileges as $privilege) {
                             if(in_array($privilege['id_privilege'], $privileges_role)) {
                                 $acl->allow($utilisateur['group']['LIBELLE_GROUPE'], $resource_finale, $privilege['name']);
