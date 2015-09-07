@@ -78,6 +78,7 @@ Corrections :
 * Correction de l'objet du dossier qui restait même après avoir changé de nature
 * Correction de la liaison d'un dossier à un établissement qui ne répercutait pas son avis
 * Correction des dates pickers à passer en français
+* Correction de la réutilisation d'une étude ou visite programmé à un ODJ, reste programmé à l'ODJ
 
 ## 2.3
 
