@@ -37,6 +37,7 @@ Evolutions :
 * Ajout de la possibilité de replier les blocs du tableau de bord
 * Ajout d'un cache APC sur les métadonnées de l'ORM hors DEV
 * Auto-complétion des villes à partir de 2 caractères pour les communes à 2 caractères
+* Ajout de balises dans l'ODJ
 
 Corrections :
 * Impossibilité de créer des dossiers en décembre : mauvais validateur de date
