@@ -518,12 +518,13 @@ class Service_Dossier
     public function saveDossierDonnantAvis($idDossier, $listeEtab, $cache, $repercuterAvis = false) {
         $dbEtab = new Model_DbTable_Etablissement();
         $service_etablissement = new Service_Etablissement();
-
+        $idEtablissementModified = array();
+        
         foreach ($listeEtab as $val => $ue) {
             $etabToEdit = $dbEtab->find($ue['ID_ETABLISSEMENT'])->current();
             $etabToEdit->ID_DOSSIER_DONNANT_AVIS = $idDossier;
             $etabToEdit->save();
-            $cache->remove('etablissement_id_'.$ue['ID_ETABLISSEMENT']);
+            $idEtablissementModified[] = $ue['ID_ETABLISSEMENT'];
 
             if ($repercuterAvis) {
                 $etablissementInfos = $service_etablissement->get($ue['ID_ETABLISSEMENT']);
@@ -531,8 +532,15 @@ class Service_Dossier
                     $etabToEdit = $dbEtab->find($etabEnfant["ID_ETABLISSEMENT"])->current();
                     $etabToEdit->ID_DOSSIER_DONNANT_AVIS = $idDossier;
                     $etabToEdit->save();
-                    $cache->remove('etablissement_id_'.$etabEnfant['ID_ETABLISSEMENT']);
+                    $idEtablissementModified[] = $etabEnfant['ID_ETABLISSEMENT'];
                 }
+            }
+        }
+        
+        foreach($idEtablissementModified as $idEtablissement) {
+            $cache->remove(sprintf('etablissement_id_%d', $idEtablissement));
+            if ($parent = $dbEtab->getParent($idEtablissement)) {
+                $cache->remove(sprintf('etablissement_id_%d', $parent['ID_ETABLISSEMENT']));
             }
         }
     }

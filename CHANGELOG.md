@@ -84,6 +84,7 @@ Corrections :
 * Correction du descriptif établissment avec les valeurs maximums
 * Correction de la fonction proprietaire manquante
 * Correction de la catégorie qui doit prendre celle du père pour les cellules au niveau de la popup et des docs générés
+* Correction du cache non vidé pour les parents des établissements lorsqu'un dossier donnant avis est modifié
 
 ## 2.3
 
