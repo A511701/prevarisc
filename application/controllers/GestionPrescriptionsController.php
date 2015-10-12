@@ -362,9 +362,9 @@ class GestionPrescriptionsController extends Zend_Controller_Action
 
             //Lorsque l'on crée une prescription TYPE
             $prescType = $dbPrescType->createRow();
-            $prescType->PRESCRIPTIONTYPE_CATEGORIE = $this->_getParam('PRESCRIPTIONTYPE_CATEGORIE');
-            $prescType->PRESCRIPTIONTYPE_TEXTE = $this->_getParam('PRESCRIPTIONTYPE_TEXTE');
-            $prescType->PRESCRIPTIONTYPE_ARTICLE = $this->_getParam('PRESCRIPTIONTYPE_ARTICLE');
+            $prescType->PRESCRIPTIONTYPE_CATEGORIE = (int) $this->_getParam('PRESCRIPTIONTYPE_CATEGORIE');
+            $prescType->PRESCRIPTIONTYPE_TEXTE = (int) $this->_getParam('PRESCRIPTIONTYPE_TEXTE');
+            $prescType->PRESCRIPTIONTYPE_ARTICLE = (int) $this->_getParam('PRESCRIPTIONTYPE_ARTICLE');
             $prescType->PRESCRIPTIONTYPE_LIBELLE = $this->_getParam('PRESCRIPTIONTYPE_LIBELLE');
             $prescType->save();
             //on recupere l'id de la prescription que l'on vient d'enregistrer
