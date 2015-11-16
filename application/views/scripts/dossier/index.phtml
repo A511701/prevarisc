@@ -1276,7 +1276,7 @@ echo "
 						<select id='year_visite' style='width:70px;'>
 					";
                     $annéeActuelle = date("Y");
-                    for ($i = $annéeActuelle; $i >= 1990; $i--) {
+                    for ($i = $annéeActuelle + 2; $i >= 1990; $i--) {
                         echo "<option value='".$i."' >".$i."</option>";
                     }
                     echo "
