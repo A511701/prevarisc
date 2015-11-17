@@ -89,6 +89,8 @@ Corrections :
 * Correction de la creation d'un ODJ la 1ère fois avec deplacement du dossier mal positionne
 * Correction de l'enregistrement d'une prescription type sans choisir de texte et d'article
 * Correction de l'espacement interbloc sur la HP qui décale tout sur 1 colonne sur certains types de petits écrans
+* Correction de la visibilité des dossiers sur les odj des membres communes
+* Correction des communes à 2 caractères, on remonte en 1er celles dont la longueure est minimale
 
 ## 2.3
 
