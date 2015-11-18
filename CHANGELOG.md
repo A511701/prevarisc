@@ -91,6 +91,7 @@ Corrections :
 * Correction de l'espacement interbloc sur la HP qui décale tout sur 1 colonne sur certains types de petits écrans
 * Correction de la visibilité des dossiers sur les odj des membres communes
 * Correction des communes à 2 caractères, on remonte en 1er celles dont la longueure est minimale
+* Correction des calendriers dans la fiche dossier : ajout de deux annees dans la liste deroulante
 
 ## 2.3
 
