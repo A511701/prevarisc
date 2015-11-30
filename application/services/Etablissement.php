@@ -75,32 +75,32 @@ class Service_Etablissement implements Service_Interface_Etablissement
                 $facteur_dangerosite = $dossier_donnant_avis->FACTDANGE_DOSSIER;
             }
 
-            $last_visite = null;
-            if ( ! ($informations->ID_GENRE === 2 && ! $informations->LOCALSOMMEIL_ETABLISSEMENTINFORMATIONS 
-                    && $informations->ID_CATEGORIE === 5)) {
-                $last_visite = $search->setItem("dossier")
-                                      // Dossier correspondant à l'établissement dont l'ID est donné
-                                      ->setCriteria("e.ID_ETABLISSEMENT", $id_etablissement)
-                                      // Dossier type "Visite de commission" et "Groupe de visite"
-                                      ->setCriteria("d.TYPE_DOSSIER", array(2,3))
-                                      // Dossier nature "périodique" et autres types donnant avis de type "Visite de commission" et "Groupe de visite"
-                                      ->setCriteria("ID_NATURE", array(21,23,24,26,28,29,47,48))
-                                      ->order('DATEVISITE_DOSSIER DESC')
-                                      ->limit(1)
-                                      ->run(false, null, false)->toArray();    
-            }
+            $last_visite = $search->setItem("dossier")
+                                  // Dossier correspondant à l'établissement dont l'ID est donné
+                                  ->setCriteria("e.ID_ETABLISSEMENT", $id_etablissement)
+                                  // Dossier type "Visite de commission" et "Groupe de visite"
+                                  ->setCriteria("d.TYPE_DOSSIER", array(2,3))
+                                  // Dossier nature "périodique" et autres types donnant avis de type "Visite de commission" et "Groupe de visite"
+                                  ->setCriteria("ID_NATURE", array(21,23,24,26,28,29,47,48))
+                                  ->order('DATEVISITE_DOSSIER DESC')
+                                  ->limit(1)
+                                  ->run(false, null, false)->toArray();
             
-
             $next_visite = null;
 
             if ($last_visite !== null && count($last_visite) > 0){
-                $tmp_date = new Zend_Date($last_visite[0]['DATEVISITE_DOSSIER'], Zend_Date::DATES);
-                $last_visite =  $tmp_date->get( Zend_date::DAY." ".Zend_Date::MONTH_NAME." ".Zend_Date::YEAR );
+                if ($last_visite[0]['DATEVISITE_DOSSIER'] !== null) {
+                    $tmp_date = new Zend_Date($last_visite[0]['DATEVISITE_DOSSIER'], Zend_Date::DATES);
+                    $last_visite =  $tmp_date->get( Zend_date::DAY." ".Zend_Date::MONTH_NAME." ".Zend_Date::YEAR );
 
-                if($informations->PERIODICITE_ETABLISSEMENTINFORMATIONS != 0) {
-                    $tmp_date = new Zend_Date($tmp_date->get( Zend_Date::WEEKDAY." ".Zend_Date::DAY_SHORT." ".Zend_Date::MONTH_NAME_SHORT." ".Zend_Date::YEAR ), Zend_Date::DATES);
-                    $tmp_date->add($informations->PERIODICITE_ETABLISSEMENTINFORMATIONS, Zend_Date::MONTH);
-                    $next_visite =  $tmp_date->get(Zend_Date::MONTH_NAME." ".Zend_Date::YEAR );
+                    if($informations->PERIODICITE_ETABLISSEMENTINFORMATIONS != 0) {
+                        $tmp_date = new Zend_Date($tmp_date->get( Zend_Date::WEEKDAY." ".Zend_Date::DAY_SHORT." ".Zend_Date::MONTH_NAME_SHORT." ".Zend_Date::YEAR ), Zend_Date::DATES);
+                        $tmp_date->add($informations->PERIODICITE_ETABLISSEMENTINFORMATIONS, Zend_Date::MONTH);
+                        $next_visite =  $tmp_date->get(Zend_Date::MONTH_NAME." ".Zend_Date::YEAR );
+                    }    
+                }
+                else {
+                    $last_visite = null;
                 }
             }
 
