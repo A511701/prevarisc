@@ -41,6 +41,7 @@ Evolutions :
 * Ajout du versionning des ressources statiques pour forcer le vidage de cache
 
 Corrections :
+* Les ERP de 5ème catégorie sans local à sommeil ne propose plus de dernière date de VP dans la fiche info.
 * Correction d'un problème sur les groupements ayant une quote dans leur libelle et/ou dans leur libelle de type de groupement
 * Correction d'un problème sur la remontée d'établissements sans VP dans l'année du à une liste de nature de dossier concerné différente de la fiche info d'un établissement
 * Impossibilité de créer des dossiers en décembre : mauvais validateur de date
