@@ -85,7 +85,7 @@ class Service_Etablissement implements Service_Interface_Etablissement
                 ->order('DATEVISITE_DOSSIER DESC')
                 ->limit(1)
                 ->run(false, null, false)->toArray();
-                
+
             $next_visite = null;
 
             if ($last_visite !== null && count($last_visite) > 0){
@@ -98,8 +98,7 @@ class Service_Etablissement implements Service_Interface_Etablissement
                         $tmp_date->add($informations->PERIODICITE_ETABLISSEMENTINFORMATIONS, Zend_Date::MONTH);
                         $next_visite =  $tmp_date->get(Zend_Date::MONTH_NAME." ".Zend_Date::YEAR );
                     }    
-                }
-                else {
+                } else {
                     $last_visite = null;
                 }
             }
