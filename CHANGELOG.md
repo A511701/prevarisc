@@ -98,6 +98,8 @@ Corrections :
 * Correction des communes à 2 caractères, on remonte en 1er celles dont la longueure est minimale
 * Correction des calendriers dans la fiche dossier : ajout de deux annees dans la liste deroulante
 * Correction de l'historique d'avis d'exploitation, qui triait mal les lignes d'historique
+* Correction d'un problème de droits sur l'action de validation des documents consultés lorsque l'utilisateur n'a accès qu'aux commissions
+* Correction du retrait d'une méthode dépréciée split
 
 ## 2.3
 
