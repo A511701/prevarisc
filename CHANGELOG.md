@@ -100,6 +100,7 @@ Corrections :
 * Correction de l'historique d'avis d'exploitation, qui triait mal les lignes d'historique
 * Correction d'un problème de droits sur l'action de validation des documents consultés lorsque l'utilisateur n'a accès qu'aux commissions
 * Correction du retrait d'une méthode dépréciée split
+* Correction de la balise {avisLastVP} qui disfonctionne ainsi que le calcul de la dernière VP
 
 ## 2.3
 
