@@ -72,6 +72,10 @@ $application = new Zend_Application('production', array(
         'display_startup_errors' => getenv('PREVARISC_DEBUG_ENABLED'),
         'display_errors' => getenv('PREVARISC_DEBUG_ENABLED'),
     ),
+    'logs' => array(
+        'logs_dir'      => getenv('PREVARISC_LOGS_DIR') ? : APPLICATION_PATH . DS . '..' . DS . 'logs',
+        'logs_level'    => getenv('PREVARISC_LOGS_LEVEL') ? : Zend_Log::ERR
+    ),
     'mail' => array(
         'enabled'           => getenv('PREVARISC_MAIL_ENABLED'),
         'transport'         => getenv('PREVARISC_MAIL_ENABLED') ?  getenv('PREVARISC_MAIL_TRANSPORT') : '',

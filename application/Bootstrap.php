@@ -100,7 +100,29 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         return $this->getCache();
     }
 
-    
+    protected function _initLogger()
+    {
+        $options = $this->getOption('logs');
+        $logger = Zend_Log::factory(array(
+            'timestampFormat' => 'Y-m-d H:i:s',
+            array(
+                'writerName'        => 'Stream',
+                'writerParams'      => array(
+                    'stream'            => $options['logs_dir'] . DIRECTORY_SEPARATOR . 'prevarisc.log'
+                ),
+                'formatterName'     => 'Simple',
+                'formatterParams'   => array(
+                    'format'            => '[%timestamp%] - %priorityName%: %message%' . PHP_EOL
+                ),
+                'filterName'        => 'Priority',
+                'filterParams'      => array(
+                    'priority'          => $options['logs_level']
+                )
+            )
+        ));
+
+        Zend_Registry::set('logger', $logger);
+    }
 
     /**
      * Initialisation de la vue
@@ -139,7 +161,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 
         return new $className($options);
     }
-    
+
     public function _initTranslator() {
         $translator = new Zend_Translate(
             array(
@@ -159,7 +181,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
         );
         Zend_Validate_Abstract::setDefaultTranslator($translator);
     }
-    
+
     public function _initAuth() {
         $options = $this->getOption('cache');
         $max_lifetime = isset($options['session_max_lifetime']) ? (int) $options['session_max_lifetime'] : 7200;

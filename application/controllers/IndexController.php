@@ -7,17 +7,30 @@ class IndexController extends Zend_Controller_Action
     {
         $service_user = new Service_User;
         $service_dashboard = new Service_Dashboard;
+        $logger = Zend_Registry::get('logger');
+        $logger->info("IndexController::indexAction: Get blocs config from Service_Dashboard");
         $blocsConfig = $service_dashboard->getBlocConfig();
-        
+
         $identity = Zend_Auth::getInstance()->getIdentity();
         $user = $service_user->find($identity['ID_UTILISATEUR']);
+        $logger->info(sprintf("IndexController::indexAction: User logged in: '%s'",
+            $user['USERNAME_UTILISATEUR']
+        ));
         $cache = Zend_Controller_Front::getInstance()->getParam('bootstrap')->getResource('cache');
         $acl = unserialize($cache->load('acl'));
         $profil = $user['group']['LIBELLE_GROUPE'];
         $blocs = array();
+        $logger->info('IndexController::indexAction: Load all blocks.');
         foreach($blocsConfig as $blocId => $blocConfig) {
             if (!$blocConfig['acl'] || ($acl->isAllowed($profil, $blocConfig['acl'][0], $blocConfig['acl'][1]))) {
                 $method = $blocConfig['method'];
+                $logger->info(
+                    sprintf("IndexController::indexAction: Load '%s' module [Id: '%s', Type: '%s'].",
+                        $blocConfig['title'],
+                        $blocId,
+                        $blocConfig['type']
+                    )
+                );
                 $blocs[$blocId] = array(
                     'type' => $blocConfig['type'],
                     'title' => $blocConfig['title'],
@@ -29,6 +42,7 @@ class IndexController extends Zend_Controller_Action
 
         // determine the bloc order
         // user preferences
+        $logger->info('IndexController::indexAction: Determine block order.');
         if (isset($user['preferences']['DASHBOARD_BLOCS'])
         && $user['preferences']['DASHBOARD_BLOCS']
         && $blocsOrder = json_decode($user['preferences']['DASHBOARD_BLOCS'])
@@ -50,22 +64,30 @@ class IndexController extends Zend_Controller_Action
         $this->_helper->layout->setLayout('index');
         $this->render('index');
     }
-    
+
     public function blocAction()
     {
         $this->_helper->layout->disableLayout();
-        
+
         $id = $this->getParam('id');
-        
+        $logger = Zend_Registry::get('logger');
+        $logger->info('IndexController::BlocAction: Bloc building...');
+
         $bloc = array();
         $service_user = new Service_User;
         $service_dashboard = new Service_Dashboard;
+        $logger->info('IndexController::BlocAction: Get bloc configuration.');
         $blocsConfig = $service_dashboard->getBlocConfig();
-        
+
         if (isset($blocsConfig[$id])) {
             $blocConfig = $blocsConfig[$id];
             $identity = Zend_Auth::getInstance()->getIdentity();
             $user = $service_user->find($identity['ID_UTILISATEUR']);
+            $logger->info(
+                sprintf("IndexController::BlocAction: User logged in: '%s'",
+                    $user['USERNAME_UTILISATEUR']
+                )
+            );
             $service = new $blocConfig['service'];
             $method = $blocConfig['method'];
             $bloc = array(
@@ -77,7 +99,8 @@ class IndexController extends Zend_Controller_Action
                 'width' => $blocConfig['width'],
             );
         }
-        
+
+        $logger->info("IndexController::BlocAction: Adding bloc to view.");
         $this->view->bloc = $bloc;
     }
 

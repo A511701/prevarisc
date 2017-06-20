@@ -25,11 +25,11 @@ class Api_Service_User
     {
         $service_user = new Service_User;
         $preferences = $service_user->savePreferences($id, $preferences);
-        
+
         if (!$preferences) {
             throw new Exception("Failed saving preferences");
         }
         return $preferences->toArray();
     }
-    
+
 }
