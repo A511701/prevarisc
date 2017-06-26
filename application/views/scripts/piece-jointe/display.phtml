@@ -23,6 +23,13 @@
             <a class='delete' href='/piece-jointe/delete?id_pj=<?php echo $pj["ID_PIECEJOINTE"] ?>&type=<?php echo $this->type ?>&id=<?php echo $this->id ?>'>
                 <i class="icon-trash"></i>
             </a>
+	    <?php if($pj['EXTENSION_PIECEJOINTE'] === '.pdf'): ?>
+	    	<a href="/mypath"><i class="icon-pencil"></i></a>
+	    <?php endif ?>
+	    <?php if(in_array($pj['EXTENSION_PIECEJOINTE'], array('.docx','.odt','.html','.rtf'))): ?>
+		<a href="/piece-jointe/convert?id_pj=<?php echo $pj["ID_PIECEJOINTE"] ?>&type=<?php echo $this->type ?>&id=<?php echo $this->id ?>&filename=<?php echo $pj['NOM_PIECEJOINTE'].$pj['EXTENSION_PIECEJOINTE'] ?>"><i class="icon-refresh"></i></a> 
+	    <?php endif ?>
+
         <?php endif ?>
     </td>
 </tr>
