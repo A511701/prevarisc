@@ -1,5 +1,13 @@
 <?php
 
+ini_set("log_errors", 1);
+ini_set("error_log", "/tmp/prevarisc-error.log");
+
+require_once('/home/prv/current/prevarisc/vendor/tcpdf/tcpdf_import.php');
+require_once('/home/prv/current/prevarisc/vendor/pdfsigning/pdfsigning.php');
+require_once('/home/prv/current/prevarisc/vendor/pdfsigning/PrevaSign.php');
+
+
 class PieceJointeController extends Zend_Controller_Action
 {
     public $store;
@@ -14,10 +22,58 @@ class PieceJointeController extends Zend_Controller_Action
             ->initContext();
     }
 
+    public function getPieceJointe()
+    {
+        // Modèles
+        $DBused = new Model_DbTable_PieceJointe;
+
+        // Cas dossier
+        if ($this->_request->type == "dossier") {
+            $type = "dossier";
+            $identifiant = $this->_request->id;
+            $piece_jointe = $DBused->affichagePieceJointe("dossierpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
+        }
+
+        // Cas établissement
+        else if ($this->_request->type == "etablissement") {
+            $type = "etablissement";
+            $identifiant = $this->_request->id;
+            $piece_jointe = $DBused->affichagePieceJointe("etablissementpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
+        }
+
+        // Cas d'une date de commission
+        else if ($this->_request->type == "dateCommission") {
+            $type = "dateCommission";
+            $identifiant = $this->_request->id;
+            $piece_jointe = $DBused->affichagePieceJointe("datecommissionpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
+        }
+        
+        if (!$piece_jointe || count($piece_jointe) == 0) {
+            throw new Zend_Controller_Action_Exception('Cannot find piece jointe for id '.$this->_request->idpj, 404);
+        }
+        
+        $piece_jointe = $piece_jointe[0];
+        
+        $filepath = $this->store->getFilePath($piece_jointe, $type, $identifiant);
+        $filename = $this->store->getFormattedFilename($piece_jointe, $type, $identifiant);
+
+        $result = array
+        (
+            'piecejointe' => $piece_jointe,
+            'filepath' => $filepath,
+            'filename' => $filename
+        );
+
+        return $result;
+
+    }
+
     public function indexAction()
     {
         // Modèles
         $DBused = new Model_DbTable_PieceJointe;
+        $DBsignature = new Model_DbTable_Signature;
+
 
         // Cas dossier
         if ($this->_request->type == "dossier") {
@@ -26,6 +82,7 @@ class PieceJointeController extends Zend_Controller_Action
             $this->view->pjcomm = $this->_request->pjcomm;
             $listePj = $DBused->affichagePieceJointe("dossierpj", "dossierpj.ID_DOSSIER", $this->_request->id);
             $this->view->verrou = $this->_request->verrou;
+
         }
 
         // Cas établissement
@@ -47,9 +104,31 @@ class PieceJointeController extends Zend_Controller_Action
             $listePj = array();
         }
 
+        // On récupère les signatures pour chaque pièce-jointe
+
+        
+        foreach ($listePj as &$pj)
+        {
+            $idpj = $pj["ID_PIECEJOINTE"];
+            $pj["signatures"] = $DBsignature->getPeopleSigned($idpj);
+        }
+        
         // On envoi la liste des PJ dans la vue
         $this->view->listePj = $listePj;
 
+        // On indique à l'utilisateur son ID pour mettre en valeur la signautre
+        $auth = Zend_Auth::getInstance();
+        $user = $auth->getIdentity();
+        $user_id = -1;
+
+        if($auth->hasIdentity()) {
+            $user_id = $auth->getIdentity()['uid'];
+            $this->view->actual_id = $user_id;
+        }
+
+
+ 
+    
     }
     
     public function getAction()
@@ -91,9 +170,9 @@ class PieceJointeController extends Zend_Controller_Action
         $this->_helper->layout()->disableLayout(); 
         $this->_helper->viewRenderer->setNoRender(true);
         
-	if (!is_readable($filepath)) {
-            throw new Zend_Controller_Action_Exception('Cannot read file '.$filepath, 404);
-        }
+    	if (!is_readable($filepath)) {
+                throw new Zend_Controller_Action_Exception('Cannot read file '.$filepath, 404);
+            }
 	
         ob_get_clean();
 	
@@ -103,8 +182,8 @@ class PieceJointeController extends Zend_Controller_Action
         header('Content-Disposition: attachment; filename="'.$filename.'"');
         header("Content-Type: application/octet-stream");
         
-	readfile($filepath);
-	exit();
+    	readfile($filepath);
+    	exit();
     }
 
 
@@ -125,10 +204,6 @@ class PieceJointeController extends Zend_Controller_Action
 
     public function addAction()
     {
-
-            ini_set("log_errors", 1);
-            ini_set("error_log", "/tmp/php-error.log");
-
         try {
             $this->_helper->viewRenderer->setNoRender(true);
             $this->_helper->layout->disableLayout();
@@ -143,22 +218,22 @@ class PieceJointeController extends Zend_Controller_Action
             
 	    
             // Extension du fichier
-            $extension = strtolower(strrchr($_FILES['fichier']['name'], "."));
+            $extension = strtolower(end(explode('.',$_FILES['fichier']['name'])));
+
             //MIME type du fichier
-            $result = mime_content_type($_FILES['fichier']['tmp_name']);
+            $mimetype = mime_content_type($_FILES['fichier']['tmp_name']);
+
+
 	        //Whitelist des types qu'on peut upload
-            if (!in_array($extension, array('.pdf', '.docx', '.doc', '.odt', '.html', '.rtf'))) {
-                throw new Exception("Ce type de fichier n'est pas autorisé en upload");
+            if(strpos(file_get_contents("/home/prv/current/prevarisc/application/allowed_mimetypes"),$mimetype) === false
+                ||
+               strpos(file_get_contents("/home/prv/current/prevarisc/application/allowed_extensions"),$extension) === false)
+            {
+                throw new Exception("Ce type de fichier n'est pas autorisé en upload : $mimetype");
             }
             
-	        elseif(!in_array($result, array('text/x-shellscrip,
-                text/x-sh,
-                ')){
+            $extension = '.' . $extension;
 
-
-
-            }
-            
             // Date d'aujourd'hui
             $dateNow = new Zend_Date();
 
@@ -278,9 +353,8 @@ class PieceJointeController extends Zend_Controller_Action
             $DBitem = null;
 
             // On récupère la pièce jointe
-            $pj = $DBpieceJointe->find($this->_request->id_pj)->current();
+            $pj = $DBpieceJointe->find($this->_request->idpj)->current();
 
-//            var_dump($pj);exit();
             // Selon le type, on fixe le modèle à utiliser
             switch ($this->_request->type) {
 
@@ -308,7 +382,7 @@ class PieceJointeController extends Zend_Controller_Action
                 
                 if( file_exists($file_path) )           unlink($file_path);
                 if( file_exists($miniature_path) )	unlink($miniature_path);
-                $DBitem->delete("ID_PIECEJOINTE = " . (int) $this->_request->id_pj);
+                $DBitem->delete("ID_PIECEJOINTE = " . (int) $this->_request->idpj);
                 $pj->delete();
             }
 
@@ -339,10 +413,6 @@ class PieceJointeController extends Zend_Controller_Action
             $this->_helper->viewRenderer->setNoRender(true);
             //$this->_helper->layout->disableLayout();
 
-            // Debug
-            ini_set("log_errors", 1);
-            ini_set("error_log", "/tmp/php-error.log");  
-
     	    // Extension du fichier
             $extension = strtolower(strrchr($_GET['filename'], "."));
 
@@ -354,34 +424,30 @@ class PieceJointeController extends Zend_Controller_Action
 
             // Cas dossier
             if ($this->_request->type == "dossier") {
-                error_log("type : dossier");
                 $type = "dossier";
                 $identifiant = $this->_request->id;
-                $piece_jointe = $DBused->affichagePieceJointe("dossierpj", "piecejointe.ID_PIECEJOINTE", $this->_request->id_pj);
+                $piece_jointe = $DBused->affichagePieceJointe("dossierpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
             }
 
             // Cas établissement
             else if ($this->_request->type == "etablissement") {
-                error_log("type : etablissement");
                 $type = "etablissement";
                 $identifiant = $this->_request->id;
-                $piece_jointe = $DBused->affichagePieceJointe("etablissementpj", "piecejointe.ID_PIECEJOINTE", $this->_request->id_pj);
+                $piece_jointe = $DBused->affichagePieceJointe("etablissementpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
             }
 
             // Cas d'une date de commission
             else if ($this->_request->type == "dateCommission") {
-                error_log("type : datecomm");
                 $type = "dateCommission";
                 $identifiant = $this->_request->id;
-                $piece_jointe = $DBused->affichagePieceJointe("datecommissionpj", "piecejointe.ID_PIECEJOINTE", $this->_request->id_pj);
+                $piece_jointe = $DBused->affichagePieceJointe("datecommissionpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
             }
 
             if (!$piece_jointe || count($piece_jointe) == 0) {
-                throw new Zend_Controller_Action_Exception('Cannot find piece jointe for id '.$this->_request->id_pj, 404);
+                throw new Zend_Controller_Action_Exception('Cannot find piece jointe for id '.$this->_request->idpj, 404);
             }
 
             $piece_jointe = $piece_jointe[0];
-            error_log("got the PJ");
             $filepath = $this->store->getFilePath($piece_jointe, $type, $identifiant);
             $filefolder = dirname($filepath);
             $filename = $this->store->getFormattedFilename($piece_jointe, $type, $identifiant);
@@ -407,7 +473,6 @@ class PieceJointeController extends Zend_Controller_Action
             }
 
             $phpWord = \PhpOffice\PhpWord\IOFactory::load($filepath,$reader); 
-
             $xmlWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord , 'PDF');
 
             // Date d'aujourd'hui
@@ -429,13 +494,10 @@ class PieceJointeController extends Zend_Controller_Action
             $xmlWriter->save($new_filedst);
 
 
-            if(file_exists($new_filesrc)){
-                error_log("File exists ! ");
-            }
+
             
             // Dans le cas d'un dossier
             if ($this->_getParam('type') == 'dossier') {
-                error_log("dossier");
                 // Modèles
                 $DBetab = new Model_DbTable_EtablissementPj;
                 $DBsave = new Model_DbTable_DossierPj;
@@ -443,7 +505,6 @@ class PieceJointeController extends Zend_Controller_Action
                 // On créé une nouvelle ligne, et on y met une bonne clé étrangère en fonction du type
                 $linkPj = $DBsave->createRow();
                 $linkPj->ID_DOSSIER = $this->_getParam('id');
-                error_log("linkPj done");
                 // On fait les liens avec les différents établissements séléctionnés
                 if ($this->_getParam('etab')) {
 
@@ -458,7 +519,6 @@ class PieceJointeController extends Zend_Controller_Action
             }
             // Dans le cas d'un établissement
             else if ($this->_getParam('type') == 'etablissement') {
-                error_log("etablissement");
 
                 // Modèles
                 $DBsave = new Model_DbTable_EtablissementPj;
@@ -468,7 +528,6 @@ class PieceJointeController extends Zend_Controller_Action
                 $linkPj->ID_ETABLISSEMENT = $this->_getParam('id');
 
             } elseif ($this->_getParam('type') == 'dateCommission') {
-                error_log("date com");
                 // Modèles
                 $DBsave = new Model_DbTable_DateCommissionPj;
 
@@ -499,9 +558,120 @@ class PieceJointeController extends Zend_Controller_Action
                 'message' => $e->getMessage()
             ));
             echo "<script type='text/javascript'>window.top.window.location.reload();</script>";
+        }        
+    }
+
+    // Ajoute un signataire à la liste actuelle
+    public function addSignerAction()
+    {
+        $this->_helper->layout->disableLayout();
+        $this->_helper->viewRenderer->setNoRender(TRUE);
+
+        $service_signature = new Service_Signature;
+        $service_user = new Service_User;
+
+
+        $user = $service_user->find($this->_request->user_id);
+        error_log("Signer : " + $user['ID_UTILISATEUR']);
+        $service_signature->addToSign($this->_request->idpj,$user['ID_UTILISATEUR']);
+
+        $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
+
+
+    }
+
+    // Fonction pour créer le hash de la PJ et le passer à la vue
+    public function getFileHashAction()
+    {
+        $this->_helper->layout->disableLayout();
+
+        try {
+
+            $this->view->id = $this->_request->id;
+            $this->view->idpj = $this->_request->idpj;
+            $this->view->type = $this->_request->type;
+
+            // Récupération de l'emplacement de la pièce jointe à signer
+            $piece_jointe = $this->getPieceJointe();            
+            $filepath = $piece_jointe['filepath'];
+
+            
+            $pdf = PrevaSign::load($filepath); // Chargement et parsing de la PJ            
+            $pdf->addSignatureField($first_signing = false); // Ajout du champ de la signature (cf. doc)
+            $pdf->renderAndSign($signing = false); // Calcul des bytes à signer et ajout de la ByteRange
+            
+            /* EXAMPLE  
+            $pdf = Farit_Pdf::load("SIGNED.pdf");
+            $certificate = file_get_contents('alice.p12');
+            $certificatePassword = 'LOLILOUL';
+            
+            if (empty($certificate)) {
+                throw new Zend_Pdf_Exception('Cannot open the certificate file');
+            }
+            $pdf->attachDigitalCertificate($certificate, $certificatePassword);
+            $renderedPdf = $pdf->render();
+            file_put_contents('SIGNED2.pdf', $renderedPdf);
+            /**/
+
+            $hash_result = utf8_encode($pdf->computeHash()); // Encodage en utf-8 pour que le HTML puisse lire tous les caractères
+
+            $this->view->assign('hash',  $hash_result); // On passe à la vue la valeur du hash pour que le client le signe 
+            $this->view->assign('time',  $pdf->getCurrentTime()); // On passe à la vue la valeur du hash pour que le client le signe 
+
+
+        } catch (Exception $e) {
+            $this->_helper->flashMessenger(array('context' => 'danger','title' => 'Erreur !','message' => 'Erreur lors de la création du hash du fichier : ' . $e->getMessage()));
         }
-        
-        //$this->_helper->redirector('index');
+    }
+
+    // Fonction pour récupérer le hash signer et l'intégrer au PDF
+    public function signFileAction()
+    {
+        $this->_helper->viewRenderer->setNoRender(true);
+        $this->_helper->layout->disableLayout();
+
+        try{
+
+            $piece_jointe = $this->getPieceJointe();
+            $filepath = $piece_jointe['filepath'];
+
+
+            $signature = $this->getRequest()->getPost('signed-hash'); // On récupère le hash signé depuis la vue
+            $time = $this->getRequest()->getPost('time'); // On récupère le hash signé depuis la vue
+
+            
+            $pdf = PrevaSign::load($filepath);  // Rechargement du PDF     
+            $pdf->setCurrentTime($time);
+            $pdf->addSignatureField($first_signing = false); // On réajoute les élements pour que le fichier corresponde à ce qui a été signé
+            $pdf->setSignatureValue($signature);
+
+            $renderedPdf = $pdf->renderAndSign($signing = true); // On rajoute encore le ByteRange mais cette fois on intègre la signature
+
+            file_put_contents('result.pdf',$renderedPdf); // On sauvegarde le résultat
+
+            
+            // Add the signature to the database
+            $service_signature = new Service_Signature;
+
+            $auth = Zend_Auth::getInstance();
+            $user = $auth->getIdentity();
+
+            if($auth->hasIdentity()) {
+
+                $user_id = $auth->getIdentity()['ID_UTILISATEUR'];
+                $service_signature->updateSigned($this->_request->idpj, $user_id);
+            }
+
+           
+        } catch (Exception $e) {
+            $this->_helper->flashMessenger(array('context' => 'danger','title' => 'Erreur !','message' => 'Erreur lors de la signature du fichier : ' . $e->getMessage()));
+        }
+        $this->_helper->flashMessenger(array(
+                    'context' => 'success',
+                    'title' => 'La pièce jointe a bien été signée',
+                    'message' => ''
+                ));
+        $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
 
     }
 
@@ -540,6 +710,7 @@ class PieceJointeController extends Zend_Controller_Action
        $this->view->exists = file_exists($file_path);
        
        if ($this->view->exists) {
+
             // Données de la pj
             $this->view->html = $this->view->partial("piece-jointe/display.phtml", array (
                 "path" => $this->getHelper('url')->url(array('controller' => 'piece-jointe', 'id' => $this->_request->id, 'action' => 'get', 'idpj' => $this->_request->idpj, 'type' => $this->_request->type)),
@@ -548,6 +719,7 @@ class PieceJointeController extends Zend_Controller_Action
                 "type" => $this->_request->type,
                 "id" => $this->_request->id,
             ));
+
        }
     }
     

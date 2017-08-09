@@ -1,0 +1,52 @@
+
+<?php
+
+ini_set("log_errors", 1);
+ini_set("error_log", "/tmp/prevarisc-error.log");
+?>
+<form id="signing-form" action='<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'sign-file', 'id' => $this->id, 'idpj' =>  $this->idpj, 'type' => $this->type, 'user_id' => $this->user_id))  ?>' method='post' >
+
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>Signer un fichier</h3>
+    </div>
+       
+    <div class="modal-body"-->
+        <dl class='dl-horizontal'>
+
+            <dt>Choisir un certificat</dt>
+            <dd>
+                <input type='file' id='certificate'>
+            </dd>
+
+            <dt>Mot de passe du certificat</dt>
+            <dd>
+                <input type='password' id='keyPassword'>
+            </dd>
+
+            <div id='callbackMessage' style='display: none'>
+                <dt id='state'></dt>
+                <dd id='message'></dd>
+            </div>
+
+        </dl>
+
+        <textarea id='file-hash' style='display: none'><?php echo $this->hash ; ?></textarea>
+        <textarea id='signed-file-hash' name='signed-hash' style='display: none'></textarea>
+        <textarea name='time' style='display: none'><?php echo $this->time; ?></textarea>
+
+    </div>
+
+    <div class="modal-footer">
+        <a href="#" data-dismiss="modal" class="btn">Annuler</a>
+        <input type='button' id='sign' value='Signer' class='btn btn-success' />
+    </div>
+
+</form>
+
+
+<script type="text/javascript" src="/js/signing-pdf/forge.min.js"></script>
+<script type="text/javascript" src="/js/signing-pdf/pkcs7.js"></script>
+<script type="text/javascript" src="/js/signing-pdf/oids.js"></script>
+<script type="text/javascript" src="/js/signing-pdf/hashSigning.js"></script>
+

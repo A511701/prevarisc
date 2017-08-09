@@ -1,14 +1,22 @@
-<?php foreach ($this->listePj as $pj) : ?>
+<div id="reponse-modal" class="modal hide fade" >
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+<?php foreach (array_values($this->listePj) as $i =>$pj) : ?>
 <tr>   
     <?php /* Lien de la pièce jointe */ ?>
     <td>
         <a 
-            class="file <?php echo substr(strtolower($pj['EXTENSION_PIECEJOINTE']), 1, 3) ?>"
+            class="file <?php echo htmlspecialchars(substr(strtolower($pj['EXTENSION_PIECEJOINTE']), 1, 3),ENT_QUOTES, 'UTF-8') ?>"
             href='<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'get', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type)) ?>' <?php if ($pj['DESCRIPTION_PIECEJOINTE']): ?> title="<?php echo $pj['DESCRIPTION_PIECEJOINTE'] ?>" <?php endif ?> target='_blank' ><?php echo $pj['NOM_PIECEJOINTE'].$pj['EXTENSION_PIECEJOINTE'] ?></a>
     </td>
     
     <?php /* Description */ ?>
-    <td><?php echo nl2br(str_replace("<br />", "" ,$pj['DESCRIPTION_PIECEJOINTE'])) ?></td>
+    <td><?php echo nl2br(str_replace("<br />", "" ,htmlspecialchars($pj['DESCRIPTION_PIECEJOINTE'],ENT_QUOTES, 'UTF-8'))) ?></td>
     
     <?php /* date de création*/ ?>
     <td>
@@ -17,20 +25,139 @@
             echo $date->get( Zend_Date::DAY."/".Zend_Date::MONTH."/".Zend_Date::YEAR );
         ?>
     </td>
+
+    <td>
+        <?php if($pj['EXTENSION_PIECEJOINTE'] === '.pdf'): ?>
+            <ul id="signatures-list" style="list-style-type: none">
+            <?php if(isset($pj["signatures"])): ?>
+                <?php foreach( $pj["signatures"] as $sig ) : ?>
+                    <li>
+                    <?php if(isset($sig["DATE_SIGNATURE"])): ?>
+                        <span class="label label-success" style="min-width: 70px" title="<?php echo $sig["DATE_SIGNATURE"] ?>">Signé</span>
+                    <?php endif ?>
+
+                    <?php if(!isset($sig["DATE_SIGNATURE"])):  ?>
+                        <?php if($sig["ID_UTILISATEUR"] === $this->actual_id):  ?>
+                            <span class="label label-warning" style="min-width: 70px">Doit signer</span>
+                        <?php else:  ?>                        
+                            <span class="label label-default" style="min-width: 70px">Doit signer</span>
+                        <?php endif ?>
+                    <?php endif ?>
+
+                    
+                    <?php 
+                    if($sig["ID_UTILISATEUR"] === $this->actual_id)
+                        echo "<strong>" . $sig["NOM_UTILISATEURINFORMATIONS"] . " " . $sig["PRENOM_UTILISATEURINFORMATIONS"] . "</strong>";
+                    else
+                        echo $sig["NOM_UTILISATEURINFORMATIONS"] . " " . $sig["PRENOM_UTILISATEURINFORMATIONS"];
+
+                     ?>
+
+                    </li>
+                    
+                <?php endforeach ?>
+            <?php endif ?>
+            </ul>
+
+            <form class="user-search" action="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'add-signer', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type)) ?>" method="post">
+                <div class="input-append" id="research-input" >
+                    <input name="user_id" class="search-field" id="user-search-field<?php echo $i?>"  type="text" placeholder="Rechercher ..."  />
+                    <input id="user_id<?php echo $i?>" name="user_id" type="hidden" />
+                    <input id="idpj" name="idpj" type="hidden" value="<?php echo $pj['ID_PIECEJOINTE'] ?>"  />
+                    <button class="btn btn_search" type="submit">+</button>
+                </div>
+            </form>
+
+        <?php endif ?>
+
+    </td>
+
     <?php /* Action*/ ?>
     <td>
+        <?php if($pj['EXTENSION_PIECEJOINTE'] === '.pdf'): ?>
+            
+            <a class='ls-modal' data-backdrop="true" href='<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'get-file-hash', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type, 'user_id' => $this->user_id)) ?>'><i class="icon-lock" title="Signer" ></i></a>
+
+        <?php endif ?>
+
         <?php if($this->verrou != 1): ?>
-            <a class='delete' href='/piece-jointe/delete?id_pj=<?php echo $pj["ID_PIECEJOINTE"] ?>&type=<?php echo $this->type ?>&id=<?php echo $this->id ?>'>
-                <i class="icon-trash"></i>
+            <a class='delete' href='/piece-jointe/delete?idpj=<?php echo htmlspecialchars($pj["ID_PIECEJOINTE"],ENT_QUOTES, 'UTF-8') ?>&type=<?php echo htmlspecialchars($this->type,ENT_QUOTES, 'UTF-8') ?>&id=<?php echo htmlspecialchars($this->id,ENT_QUOTES, 'UTF-8') ?>'>
+                <i class="icon-trash" title="Supprimer"></i>
             </a>
-	    <?php if($pj['EXTENSION_PIECEJOINTE'] === '.pdf'): ?>
-	    	<a href="/mypath"><i class="icon-pencil"></i></a>
-	    <?php endif ?>
+
+
+
 	    <?php if(in_array($pj['EXTENSION_PIECEJOINTE'], array('.docx','.odt','.html','.rtf'))): ?>
-		<a href="/piece-jointe/convert?id_pj=<?php echo $pj["ID_PIECEJOINTE"] ?>&type=<?php echo $this->type ?>&id=<?php echo $this->id ?>&filename=<?php echo $pj['NOM_PIECEJOINTE'].$pj['EXTENSION_PIECEJOINTE'] ?>"><i class="icon-refresh"></i></a> 
+
+
+		  <a href="<?php $this->url(array('controller' => 'piece-jointe', 'action' => 'convert', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type, 'filename' => $pj['NOM_PIECEJOINTE'].$pj['EXTENSION_PIECEJOINTE'])) ?>"><i class="icon-refresh"></i></a> 
 	    <?php endif ?>
 
         <?php endif ?>
     </td>
 </tr>
 <?php endforeach ?>
+
+
+<script type="text/javascript">
+
+    // Fenetre modale de signature
+    $('.ls-modal').on('click', function(e){
+      e.preventDefault();
+      var openingMode = "show";
+      if (typeof(Storage) !== "undefined") {
+        if(sessionStorage.getItem("certificat") && sessionStorage.getItem("password"))
+            openingMode = "hide";
+      }
+      $('#reponse-modal').modal(openingMode).find('.modal-content').load($(this).attr('href'));      
+      
+    });
+
+
+    // Mise à jour du champ de recherche d'utilisateur
+
+    $(document).ready(function() {
+        $(".search-field").autocomplete("/api/1.0/search/users?format=json", {
+            extraParams: {
+                label: function() {
+                    return $(".search-field").val().trim();
+                }
+            },
+            minChars: 3,
+            width: 500,
+            parse: function(data) {
+                return $.map(data["response"]["results"], function(row) {
+                    return {
+                        data: row,
+                        value: row.NOM_UTILISATEURINFORMATIONS, 
+                        result: row.NOM_UTILISATEURINFORMATIONS + " " + row.PRENOM_UTILISATEURINFORMATIONS
+                    }
+                });
+            },
+            formatItem: function(item) {
+                return "[" + item.LIBELLE_FONCTION + "] "  +item.PRENOM_UTILISATEURINFORMATIONS + " " + item.NOM_UTILISATEURINFORMATIONS;
+            }
+        }).result(function(e, item) {
+
+            var count = $("input[class*='search-field']").length;
+            console.log("Count : "+count);
+            var result;
+            for (var i = 0; i<count;i++) {
+                if(document.contains(document.getElementById("user-search-field"+i))){
+                    console.log("#user-search-field"+i+" : "+$("#user-search-field"+i).val().trim());
+                    if($("#user-search-field"+i).val().trim() != ""){
+                        result = i;
+                    }
+                }
+            }
+            //var signatureTag = '<li><span class="label label-default" style="min-width: 70px">Doit signer</span> '+item.NOM_UTILISATEURINFORMATIONS+' '+item.PRENOM_UTILISATEURINFORMATIONS+'</li>';
+            //$("#signatures_list").append(signatureTag);
+
+            $("#user_id"+result).val(item.uid);
+
+        });
+    });
+
+
+
+</script>
