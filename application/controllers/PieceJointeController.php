@@ -543,9 +543,26 @@ class PieceJointeController extends Zend_Controller_Action
         $user = $service_user->find($this->_request->user_id);
         $service_signature->addToSign($this->_request->idpj,$user['ID_UTILISATEUR']);
 
+        if($this->_request->type !== "gestioncommission"){
+            $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
+        }
+        else{
+            $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
+        }
+    }
+
+    public function removeSignerAction()
+    {
+        $this->_helper->layout->disableLayout();
+        $this->_helper->viewRenderer->setNoRender(TRUE);
+
+        $service_signature = new Service_Signature;
+        $service_user = new Service_User;
+
+        $user = $service_user->find($this->_request->user_id);
+        $service_signature->removeSigner($this->_request->idpj,$user['ID_UTILISATEUR']);
+        
         $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
-
-
     }
 
     // Fonction pour créer le hash de la PJ et le passer à la vue

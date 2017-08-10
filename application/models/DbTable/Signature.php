@@ -75,7 +75,7 @@
                 ->join(array('util' => 'utilisateur'),"sig.ID_UTILISATEUR = util.ID_UTILISATEUR")
                 ->join(array('utilinfo' => 'utilisateurinformations'),"util.ID_UTILISATEURINFORMATIONS = utilinfo.ID_UTILISATEURINFORMATIONS")
                 ->where("sig.ID_PIECEJOINTE = $idpj")
-                ->order("utilinfo.NOM_UTILISATEURINFORMATIONS ASC");        
+                ->order("sig.DATE_SIGNATURE ASC");        
 
                 return $this->fetchAll($select)->toArray();
 

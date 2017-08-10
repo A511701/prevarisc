@@ -28,7 +28,7 @@
 
     <td>
         <?php if($pj['EXTENSION_PIECEJOINTE'] === '.pdf'): ?>
-            <ul id="signatures-list" style="list-style-type: none">
+            <ul id="signatures-list">
             <?php if(isset($pj["signatures"])): ?>
                 <?php foreach( $pj["signatures"] as $sig ) : ?>
                     <li>
@@ -50,9 +50,13 @@
                         echo "<strong>" . $sig["NOM_UTILISATEURINFORMATIONS"] . " " . $sig["PRENOM_UTILISATEURINFORMATIONS"] . "</strong>";
                     else
                         echo $sig["NOM_UTILISATEURINFORMATIONS"] . " " . $sig["PRENOM_UTILISATEURINFORMATIONS"];
+                    ?>
 
-                     ?>
-
+                    <?php if(!isset($sig["DATE_SIGNATURE"])) :  ?>
+                        <a style="float:right;" href="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'remove-signer', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type,'user_id' => $sig["ID_UTILISATEUR"])) ?>">Retirer</a>
+                    <?php endif ?>
+                    
+                    
                     </li>
                     
                 <?php endforeach ?>
@@ -162,6 +166,13 @@
         }
     });
 
-
-
 </script>
+
+
+<style>
+
+ul,li { list-style-type: none;
+        list-style-position:inside;
+        margin:0;
+        margin-bottom: :0; }
+</style>

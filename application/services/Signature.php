@@ -3,7 +3,7 @@
 class Service_Signature
 {
     /**
-     * Récupération de l'ensemble des communes
+     * Récupération de l'ensemble des signatures
      *
      * @return array
      */
@@ -15,7 +15,7 @@ class Service_Signature
 
 
     /**
-     * Récupération des communes via le nom ou le code postal
+     * Ajoute une personne devant signer ladite pièce jointe
      *
      * @param string $q Code postal ou nom d'une commune
      * @return array
@@ -42,6 +42,20 @@ class Service_Signature
             throw $e;
         }
     }
+
+
+    /**
+     * Supprime une signature de la table
+     *
+     * @param string $q Code postal ou nom d'une commune
+     * @return array
+     */
+    public function removeSigner($idpj, $id_user = null)
+    {
+        $DB_signature = new Model_DbTable_Signature;
+        $DB_signature->delete("ID_PIECEJOINTE = ".(int) $idpj." AND ID_UTILISATEUR = ".(int) $id_user);
+    }
+
 
     public function updateSigned($idpj, $id_user){
         $DB_signature = new Model_DbTable_Signature;
