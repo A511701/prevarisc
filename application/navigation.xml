@@ -689,6 +689,11 @@
                             <action>delete</action>
                             <privilege>modification_odj</privilege>
                         </delete>
+                        <convert>
+                            <controller>piece-jointe</controller>
+                            <action>convert</action>
+                            <privilege>modification_odj</privilege>
+                        </convert>
                         <check>
                             <label>Verifier</label>
                             <controller>piece-jointe</controller>
@@ -752,6 +757,11 @@
                             <action>delete</action>
                             <privilege>edit_doss</privilege>
                         </delete>
+                        <convert>
+                            <controller>piece-jointe</controller>
+                            <action>convert</action>
+                            <privilege>edit_doss</privilege>
+                        </convert>
                         <check>
                             <label>Verifier</label>
                             <controller>piece-jointe</controller>
