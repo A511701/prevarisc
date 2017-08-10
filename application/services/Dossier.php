@@ -106,14 +106,14 @@ class Service_Dossier
      * Suppression d'une pièce jointe d'un dossier
      *
      * @param int $id_dossier
-     * @param int $id_pj
+     * @param int $idpj
      */
-    public function deletePJ($id_dossier, $id_pj)
+    public function deletePJ($id_dossier, $idpj)
     {
         $DBpieceJointe = new Model_DbTable_PieceJointe();
         $DBitem = new Model_DbTable_DossierPj();
 
-        $pj = $DBpieceJointe->find($id_pj)->current();
+        $pj = $DBpieceJointe->find($idpj)->current();
         if (!$pj) {
             return;
         }
@@ -125,7 +125,7 @@ class Service_Dossier
             if (file_exists($file_path)) {
                 unlink($file_path);
             }
-            $DBitem->delete("ID_PIECEJOINTE = ".(int) $id_pj);
+            $DBitem->delete("ID_PIECEJOINTE = ".(int) $idpj);
             $pj->delete();
         }
     }

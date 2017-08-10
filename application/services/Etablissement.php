@@ -1173,14 +1173,14 @@ class Service_Etablissement implements Service_Interface_Etablissement
      * Suppression d'une pièce jointe d'un établissement
      *
      * @param int $id_etablissement
-     * @param int $id_pj
+     * @param int $idpj
      */
-    public function deletePJ($id_etablissement, $id_pj)
+    public function deletePJ($id_etablissement, $idpj)
     {
         $DBpieceJointe = new Model_DbTable_PieceJointe;
         $DBitem = new Model_DbTable_EtablissementPj;
 
-        $pj = $DBpieceJointe->find($id_pj)->current();
+        $pj = $DBpieceJointe->find($idpj)->current();
         if (!$pj) {
             return ;
         }
@@ -1194,7 +1194,7 @@ class Service_Etablissement implements Service_Interface_Etablissement
         if ($DBitem != null) {
             if( file_exists($file_path) )         unlink($file_path);
             if( file_exists($miniature_path))     unlink($miniature_path);
-            $DBitem->delete("ID_PIECEJOINTE = " . (int) $id_pj);
+            $DBitem->delete("ID_PIECEJOINTE = " . (int) $idpj);
             $pj->delete();
         }
 
