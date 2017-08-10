@@ -169,6 +169,16 @@ class Service_Dashboard
             'height'  => 'small',
             'width'   => 'small',
         ),
+                // autres blocs
+        'signatures' => array(
+            'service' => 'Service_Dashboard',
+            'method'  => 'getSignatures',
+            'acl'     => null,
+            'title'   => 'Signatures en attente',
+            'type'    => 'signatures',
+            'height'  => 'small',
+            'width'   => 'small',
+        ),
     );
     
     public function __construct($options = array()) {
@@ -474,6 +484,14 @@ class Service_Dashboard
             $valCpt++;
         }
         return $dossiers;   
+    }
+
+    public function getSignatures($user){
+        $DBsignature = new Model_DbTable_Signature;
+        $id_user = $user['ID_UTILISATEUR'];
+        $signatures = $DBsignature->getSignaturesUser($id_user);
+
+        return $signatures ;   
     }
 
 
