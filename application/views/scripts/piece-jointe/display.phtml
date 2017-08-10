@@ -90,7 +90,7 @@
 	    <?php if(in_array($pj['EXTENSION_PIECEJOINTE'], array('.docx','.odt','.html','.rtf'))): ?>
 
 
-		  <a href="<?php $this->url(array('controller' => 'piece-jointe', 'action' => 'convert', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type, 'filename' => $pj['NOM_PIECEJOINTE'].$pj['EXTENSION_PIECEJOINTE'])) ?>"><i class="icon-refresh"></i></a> 
+		  <a href="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'convert', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type, 'nom_pj' => $pj['NOM_PIECEJOINTE'], 'extension_pj' => $pj['EXTENSION_PIECEJOINTE'])) ?>"><i class="icon-refresh"></i></a> 
 	    <?php endif ?>
 
         <?php endif ?>

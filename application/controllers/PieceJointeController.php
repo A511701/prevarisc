@@ -3,8 +3,6 @@
 ini_set("log_errors", 1);
 ini_set("error_log", "/tmp/prevarisc-error.log");
 
-require_once('/home/prv/current/prevarisc/vendor/tcpdf/tcpdf_import.php');
-require_once('/home/prv/current/prevarisc/vendor/pdfsigning/pdfsigning.php');
 require_once('/home/prv/current/prevarisc/vendor/pdfsigning/PrevaSign.php');
 
 
@@ -411,47 +409,17 @@ class PieceJointeController extends Zend_Controller_Action
 
         try {
             $this->_helper->viewRenderer->setNoRender(true);
-            //$this->_helper->layout->disableLayout();
 
-    	    // Extension du fichier
-            $extension = strtolower(strrchr($_GET['filename'], "."));
-
-            if (!in_array($extension, array('.docx', '.html', '.odt','.rtf'))) {
+            error_log("Extension : ". $this->_getParam('extension_pj'));
+            // Vérification de l'extension de la pièce jointe
+            if (!in_array($this->_getParam('extension_pj'), array('.docx', '.html', '.odt','.rtf'))) {
                 throw new Exception("Vous ne pouvez convertir que des fichiers HTML, RTF, DOCX et ODT");
             }
 
-        	$DBused = new Model_DbTable_PieceJointe;
-
-            // Cas dossier
-            if ($this->_request->type == "dossier") {
-                $type = "dossier";
-                $identifiant = $this->_request->id;
-                $piece_jointe = $DBused->affichagePieceJointe("dossierpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
-            }
-
-            // Cas établissement
-            else if ($this->_request->type == "etablissement") {
-                $type = "etablissement";
-                $identifiant = $this->_request->id;
-                $piece_jointe = $DBused->affichagePieceJointe("etablissementpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
-            }
-
-            // Cas d'une date de commission
-            else if ($this->_request->type == "dateCommission") {
-                $type = "dateCommission";
-                $identifiant = $this->_request->id;
-                $piece_jointe = $DBused->affichagePieceJointe("datecommissionpj", "piecejointe.ID_PIECEJOINTE", $this->_request->idpj);
-            }
-
-            if (!$piece_jointe || count($piece_jointe) == 0) {
-                throw new Zend_Controller_Action_Exception('Cannot find piece jointe for id '.$this->_request->idpj, 404);
-            }
-
-            $piece_jointe = $piece_jointe[0];
-            $filepath = $this->store->getFilePath($piece_jointe, $type, $identifiant);
-            $filefolder = dirname($filepath);
-            $filename = $this->store->getFormattedFilename($piece_jointe, $type, $identifiant);
-            $new_name = explode('.', $_GET['filename'])[0];
+        	// Récupération de l'emplacement de la pièce jointe à signer
+            $piece_jointe = $this->getPieceJointe();            
+            $filepath = $piece_jointe['filepath'];
+            $new_name = $this->_getParam('nom_pj');
             $new_filesrc = explode('.', $filepath)[0] . '.pdf';
 
 
@@ -459,16 +427,16 @@ class PieceJointeController extends Zend_Controller_Action
             \PhpOffice\PhpWord\Settings::setPdfRendererName('TCPDF');
             $phpWord = new \PhpOffice\PhpWord\PhpWord();
 
-            if($extension === '.odt'){
+            if($this->_getParam('extension_pj') === '.odt'){
                 $reader = 'ODText';
             }
-            elseif($extension === '.docx'){
+            elseif($this->_getParam('extension_pj') === '.docx'){
                 $reader = 'Word2007';
             }
-            elseif ($extension === '.rtf') {
+            elseif ($this->_getParam('extension_pj') === '.rtf') {
                 $reader = 'RTF';
             }
-            elseif ($extension === '.html') {
+            elseif ($this->_getParam('extension_pj') === '.html') {
                 $reader = 'HTML';
             }
 
@@ -478,6 +446,7 @@ class PieceJointeController extends Zend_Controller_Action
             // Date d'aujourd'hui
             $dateNow = new Zend_Date();
 
+            $DBused = new Model_DbTable_PieceJointe();
             // Création d'une nouvelle ligne dans la base de données
             $nouvellePJ = $DBused->createRow();
 
@@ -492,8 +461,6 @@ class PieceJointeController extends Zend_Controller_Action
             
             $new_filedst = $this->store->getFilePath($nouvellePJ, $this->_getParam('type'), $this->_getParam('id'), true);
             $xmlWriter->save($new_filedst);
-
-
 
             
             // Dans le cas d'un dossier
@@ -549,7 +516,7 @@ class PieceJointeController extends Zend_Controller_Action
                     'message' => ''
                 ));
 
-            echo "<script type='text/javascript'>window.top.window.callback('".$nouvellePJ->ID_PIECEJOINTE."', '".$extension."');</script>";
+            echo "<script type='text/javascript'>window.top.window.callback('".$nouvellePJ->ID_PIECEJOINTE."', '".$this->_getParam('extension_pj')."');</script>";
 
         } catch (Exception $e) {
             $this->_helper->flashMessenger(array(
@@ -558,7 +525,10 @@ class PieceJointeController extends Zend_Controller_Action
                 'message' => $e->getMessage()
             ));
             echo "<script type='text/javascript'>window.top.window.location.reload();</script>";
-        }        
+        }     
+
+        $this->_helper->redirector->gotoUrl($this->_getParam('type') . '/piece-jointe/id/' . $this->_getParam('id'));
+   
     }
 
     // Ajoute un signataire à la liste actuelle
@@ -570,9 +540,7 @@ class PieceJointeController extends Zend_Controller_Action
         $service_signature = new Service_Signature;
         $service_user = new Service_User;
 
-
         $user = $service_user->find($this->_request->user_id);
-        error_log("Signer : " + $user['ID_UTILISATEUR']);
         $service_signature->addToSign($this->_request->idpj,$user['ID_UTILISATEUR']);
 
         $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
@@ -600,23 +568,11 @@ class PieceJointeController extends Zend_Controller_Action
             $pdf->addSignatureField($first_signing = false); // Ajout du champ de la signature (cf. doc)
             $pdf->renderAndSign($signing = false); // Calcul des bytes à signer et ajout de la ByteRange
             
-            /* EXAMPLE  
-            $pdf = Farit_Pdf::load("SIGNED.pdf");
-            $certificate = file_get_contents('alice.p12');
-            $certificatePassword = 'LOLILOUL';
-            
-            if (empty($certificate)) {
-                throw new Zend_Pdf_Exception('Cannot open the certificate file');
-            }
-            $pdf->attachDigitalCertificate($certificate, $certificatePassword);
-            $renderedPdf = $pdf->render();
-            file_put_contents('SIGNED2.pdf', $renderedPdf);
-            /**/
 
             $hash_result = utf8_encode($pdf->computeHash()); // Encodage en utf-8 pour que le HTML puisse lire tous les caractères
 
             $this->view->assign('hash',  $hash_result); // On passe à la vue la valeur du hash pour que le client le signe 
-            $this->view->assign('time',  $pdf->getCurrentTime()); // On passe à la vue la valeur du hash pour que le client le signe 
+            $this->view->assign('time',  $pdf->getCurrentTime()); // On passe également l'heure du document pour qu'elle soit exacte quand on le reconstitue plus tard
 
 
         } catch (Exception $e) {
@@ -624,7 +580,7 @@ class PieceJointeController extends Zend_Controller_Action
         }
     }
 
-    // Fonction pour récupérer le hash signer et l'intégrer au PDF
+    // Fonction pour récupérer le hash signé et l'intégrer au PDF
     public function signFileAction()
     {
         $this->_helper->viewRenderer->setNoRender(true);
@@ -647,10 +603,10 @@ class PieceJointeController extends Zend_Controller_Action
 
             $renderedPdf = $pdf->renderAndSign($signing = true); // On rajoute encore le ByteRange mais cette fois on intègre la signature
 
-            file_put_contents('result.pdf',$renderedPdf); // On sauvegarde le résultat
+            file_put_contents($filepath,$renderedPdf); // On écrase l'ancien fichier avec la signature
 
             
-            // Add the signature to the database
+            // Ajout de la signature à la base de données
             $service_signature = new Service_Signature;
 
             $auth = Zend_Auth::getInstance();
