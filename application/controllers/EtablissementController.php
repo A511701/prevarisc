@@ -315,7 +315,7 @@ class EtablissementController extends Zend_Controller_Action
         {
             try {
                 $post = $this->_request->getPost();
-                $service_etablissement->deletePJ($this->_request->id, $this->_request->id_pj);
+                $service_etablissement->deletePJ($this->_request->id, $this->_request->idpj);
                 $this->_helper->flashMessenger(array('context' => 'success', 'title' => 'Suppression réussie !', 'message' => 'La pièce jointe a bien été supprimée.'));
             }
             catch(Exception $e) {
