@@ -2,27 +2,9 @@
 
 	<dl class='dl-horizontal'>
 	
-		<dt>Fichier à envor</dt>
+		<dt>Fichier à envoyer</dt>
 		<dd><input type='file' name='fichier' id='fichier' size='30' /></dd>
-		<div id='signer' style='display: none'>
-                <dt>Signer le fichier</dt>
-                <dd><input type='checkbox' id='signCheck'></dd>
-                </div>
 
-                <script>
-
-                document.getElementById('fichier').onchange = function () {
-                        extension = this.value.split('.').pop();
-                        signCheckbox = document.getElementById('signer');
-                        if(extension === 'pdf'){
-                                signCheckbox.style.display = 'inline';
-                        }
-                        else{
-                                signCheckbox.style.display = 'none';
-                        }
-                }
-
-                 </script>
 		
         <?php if($this->type == 'etablissement') : ?>
 
@@ -55,6 +37,5 @@
 
 	<input type='hidden' name='type' id='typeUpload' value='<?php echo htmlspecialchars($this->type) ?>' />
 	<input type='hidden' name='id' id='identifiant' value='<?php echo htmlspecialchars($this->identifiant) ?>' />
-	<?php echo htmlspecialchars($this->identifiant) ?>
 	
 </form>

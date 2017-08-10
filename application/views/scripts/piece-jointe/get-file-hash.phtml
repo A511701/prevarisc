@@ -1,9 +1,3 @@
-
-<?php
-
-ini_set("log_errors", 1);
-ini_set("error_log", "/tmp/prevarisc-error.log");
-?>
 <form id="signing-form" action='<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'sign-file', 'id' => $this->id, 'idpj' =>  $this->idpj, 'type' => $this->type, 'user_id' => $this->user_id))  ?>' method='post' >
 
     <div class="modal-header">
@@ -47,6 +41,5 @@ ini_set("error_log", "/tmp/prevarisc-error.log");
 
 <script type="text/javascript" src="/js/signing-pdf/forge.min.js"></script>
 <script type="text/javascript" src="/js/signing-pdf/pkcs7.js"></script>
-<script type="text/javascript" src="/js/signing-pdf/oids.js"></script>
 <script type="text/javascript" src="/js/signing-pdf/hashSigning.js"></script>
 

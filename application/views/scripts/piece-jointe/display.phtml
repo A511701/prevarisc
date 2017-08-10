@@ -33,14 +33,14 @@
                 <?php foreach( $pj["signatures"] as $sig ) : ?>
                     <li>
                     <?php if(isset($sig["DATE_SIGNATURE"])): ?>
-                        <span class="label label-success" style="min-width: 70px" title="<?php echo $sig["DATE_SIGNATURE"] ?>">Signé</span>
+                        <span class="label label-success" style="min-width: 70px;" title="<?php echo $sig["DATE_SIGNATURE"] ?>">Signé</span>
                     <?php endif ?>
 
                     <?php if(!isset($sig["DATE_SIGNATURE"])):  ?>
                         <?php if($sig["ID_UTILISATEUR"] === $this->actual_id):  ?>
-                            <span class="label label-warning" style="min-width: 70px">Doit signer</span>
+                            <span class="label label-warning" style="min-width: 70px; padding:none">Doit signer</span>
                         <?php else:  ?>                        
-                            <span class="label label-default" style="min-width: 70px">Doit signer</span>
+                            <span class="label label-default" style="min-width: 70px; padding:none">Doit signer</span>
                         <?php endif ?>
                     <?php endif ?>
 
@@ -59,13 +59,13 @@
             <?php endif ?>
             </ul>
 
-            <form class="user-search" action="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'add-signer', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type)) ?>" method="post">
-                <div class="input-append" id="research-input" >
-                    <input name="user_id" class="search-field" id="user-search-field<?php echo $i?>"  type="text" placeholder="Rechercher ..."  />
-                    <input id="user_id<?php echo $i?>" name="user_id" type="hidden" />
-                    <input id="idpj" name="idpj" type="hidden" value="<?php echo $pj['ID_PIECEJOINTE'] ?>"  />
-                    <button class="btn btn_search" type="submit">+</button>
+            <form id="form-user<?php echo $i?>" class="user-search" action="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'add-signer', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type)) ?>" method="post">
+
+                <div class="search-utilisateurs">
+                    <input name="user_id" id="user-search-field<?php echo $i?>" type='text' placeholder="Ajouter un utilisateur ..." value='' />
+
                 </div>
+
             </form>
 
         <?php endif ?>
@@ -85,15 +85,15 @@
                 <i class="icon-trash" title="Supprimer"></i>
             </a>
 
+        <?php endif ?>
 
 
 	    <?php if(in_array($pj['EXTENSION_PIECEJOINTE'], array('.docx','.odt','.html','.rtf'))): ?>
 
-
 		  <a href="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'convert', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type, 'nom_pj' => $pj['NOM_PIECEJOINTE'], 'extension_pj' => $pj['EXTENSION_PIECEJOINTE'])) ?>"><i class="icon-refresh"></i></a> 
+
 	    <?php endif ?>
 
-        <?php endif ?>
     </td>
 </tr>
 <?php endforeach ?>
@@ -115,33 +115,38 @@
 
 
     // Mise à jour du champ de recherche d'utilisateur
+     $(".search-utilisateurs input[type='text']").typeahead({
+        minLength: 3,
+        source: function(query, process) {
+            return $.ajax({
+                url: "/api/1.0/search/users",
+                type: 'post',
+                data: {
+                    name: query,
+                    limit: 100
+                },
+                success: function (result) {
+                    utilisateurs = [];
+                    $.each(result.response.results, function (i, preventionniste) {
+                        utilisateurs.push("<span data-id='" + preventionniste.uid + "'>" + preventionniste.NOM_UTILISATEURINFORMATIONS + " " + preventionniste.PRENOM_UTILISATEURINFORMATIONS + "</span>");
+                    });
 
-    $(document).ready(function() {
-        $(".search-field").autocomplete("/api/1.0/search/users?format=json", {
-            extraParams: {
-                label: function() {
-                    return $(".search-field").val().trim();
+                    process(utilisateurs);
                 }
-            },
-            minChars: 3,
-            width: 500,
-            parse: function(data) {
-                return $.map(data["response"]["results"], function(row) {
-                    return {
-                        data: row,
-                        value: row.NOM_UTILISATEURINFORMATIONS, 
-                        result: row.NOM_UTILISATEURINFORMATIONS + " " + row.PRENOM_UTILISATEURINFORMATIONS
-                    }
-                });
-            },
-            formatItem: function(item) {
-                return "[" + item.LIBELLE_FONCTION + "] "  +item.PRENOM_UTILISATEURINFORMATIONS + " " + item.NOM_UTILISATEURINFORMATIONS;
-            }
-        }).result(function(e, item) {
+            });
+        },
+        highlighter: function (item) {
+            libelle = $($.parseHTML(item)).last().text();
+            libelle = libelle.replace( new RegExp( '(' + this.query + ')', 'gi' ), "<strong>$1</strong>" );
+            html = $.parseHTML(item);
+            $(html).last().text(libelle);
+            html = $(html).text();
+            return item.replace( item, html );
+        },
+        updater: function (item) {
 
-            var count = $("input[class*='search-field']").length;
-            console.log("Count : "+count);
-            var result;
+            var count = $("div[class*='search-utilisateurs']").length;
+            var result = -1;
             for (var i = 0; i<count;i++) {
                 if(document.contains(document.getElementById("user-search-field"+i))){
                     console.log("#user-search-field"+i+" : "+$("#user-search-field"+i).val().trim());
@@ -150,12 +155,11 @@
                     }
                 }
             }
-            //var signatureTag = '<li><span class="label label-default" style="min-width: 70px">Doit signer</span> '+item.NOM_UTILISATEURINFORMATIONS+' '+item.PRENOM_UTILISATEURINFORMATIONS+'</li>';
-            //$("#signatures_list").append(signatureTag);
-
-            $("#user_id"+result).val(item.uid);
-
-        });
+            var userID = $(item).attr('data-id');
+            $("#user-search-field"+result).val(userID);
+            document.getElementById("form-user"+result).submit();
+            return;
+        }
     });
 
 
