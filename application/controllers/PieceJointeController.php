@@ -546,7 +546,8 @@ class PieceJointeController extends Zend_Controller_Action
 
         // On vérifie que le signataire n'est pas déjà présent
         $DB_signature = new Model_DbTable_Signature();
-        if(!is_null($DB_signature->findSignature($this->_request->idpj, $user['ID_UTILISATEUR']))){
+        $result = $DB_signature->findSignature($this->_request->idpj, $user['ID_UTILISATEUR']);
+        if(!is_null($result)){
             throw new Exception("Cette personne est déjà présente dans la liste");
         }
 
@@ -642,7 +643,7 @@ class PieceJointeController extends Zend_Controller_Action
                 $user_id = $auth->getIdentity()['ID_UTILISATEUR'];
                 $DB_signature = new Model_DbTable_Signature();
 
-                if(!is_null($DB_signature->findSignature($this->_request->idpj, $user_id))){
+                if(!is_null($DB_signature->findSignatureDone($this->_request->idpj, $user_id))){
                     throw new Exception("Vous avez déjà signé cette pièce jointe");
                 }
                 $service_signature->updateSigned($this->_request->idpj, $user_id);

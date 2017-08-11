@@ -46,6 +46,21 @@
             return $result;
         }
 
+        // Retourne UNE signature complétée pour une pièce jointe et un utilisateur donnés
+        public function findSignatureDone($idpj, $iduser){
+
+            $select = $this->select()
+                ->setIntegrityCheck(false)
+                ->from("signature")
+                ->where("ID_UTILISATEUR = $iduser")
+                ->where("ID_PIECEJOINTE = $idpj")
+                ->where("DATE_SIGNATURE IS NOT NULL");
+
+            $select->limit(1);
+            $result = $this->fetchRow($select);
+            return $result;
+        }
+
         // Donne la liste des signatures en attente d'un utilisateur, pour le bloc Signature de l'index
         public function getSignaturesUser($iduser){
 
