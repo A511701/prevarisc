@@ -7,7 +7,7 @@ class Service_Signature
      *
      * @return array
      */
-    public function getSignatures($id)
+    public function getSignatures()
     {
     	$model_signature = new Model_DbTable_Signature;
     	return $model_signature->fetchAll()->toArray();

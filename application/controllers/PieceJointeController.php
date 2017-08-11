@@ -1,8 +1,5 @@
 <?php
 
-ini_set("log_errors", 1);
-ini_set("error_log", "/tmp/prevarisc-error.log");
-
 require_once('/home/prv/current/prevarisc/vendor/pdfsigning/PrevaSign.php');
 
 
@@ -543,11 +540,17 @@ class PieceJointeController extends Zend_Controller_Action
 
         $service_signature = new Service_Signature;
         $service_user = new Service_User;
+        $DB_signature = new Model_DbTable_Signature();
 
         $user = $service_user->find($this->_request->user_id);
-        $service_signature->addToSign($this->_request->idpj,$user['ID_UTILISATEUR']);
 
-        error_log("Add Signer : " . $this->_request->user_id);
+        // On vérifie que le signataire n'est pas déjà présent
+        $DB_signature = new Model_DbTable_Signature();
+        if(!is_null($DB_signature->findSignature($this->_request->idpj, $user['ID_UTILISATEUR']))){
+            throw new Exception("Cette personne est déjà présente dans la liste");
+        }
+
+        $service_signature->addToSign($this->_request->idpj,$user['ID_UTILISATEUR']);
 
         if($this->_request->type !== "gestioncommission"){
             $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
@@ -557,6 +560,7 @@ class PieceJointeController extends Zend_Controller_Action
         }
     }
 
+    // On supprime le signataire de la liste actuelle
     public function removeSignerAction()
     {
         $this->_helper->layout->disableLayout();
@@ -608,7 +612,6 @@ class PieceJointeController extends Zend_Controller_Action
     {
         $this->_helper->viewRenderer->setNoRender(true);
         $this->_helper->layout->disableLayout();
-
         try{
 
             $piece_jointe = $this->getPieceJointe();
@@ -634,22 +637,28 @@ class PieceJointeController extends Zend_Controller_Action
 
             $auth = Zend_Auth::getInstance();
             $user = $auth->getIdentity();
-
             if($auth->hasIdentity()) {
 
                 $user_id = $auth->getIdentity()['ID_UTILISATEUR'];
+                $DB_signature = new Model_DbTable_Signature();
+
+                if(!is_null($DB_signature->findSignature($this->_request->idpj, $user_id))){
+                    throw new Exception("Vous avez déjà signé cette pièce jointe");
+                }
                 $service_signature->updateSigned($this->_request->idpj, $user_id);
+
             }
+            $this->_helper->flashMessenger(array(
+                'context' => 'success',
+                'title' => 'La pièce jointe a bien été signée',
+                'message' => ''
+            ));
 
            
         } catch (Exception $e) {
             $this->_helper->flashMessenger(array('context' => 'danger','title' => 'Erreur !','message' => 'Erreur lors de la signature du fichier : ' . $e->getMessage()));
         }
-        $this->_helper->flashMessenger(array(
-                    'context' => 'success',
-                    'title' => 'La pièce jointe a bien été signée',
-                    'message' => ''
-                ));
+       
         $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);
 
     }
