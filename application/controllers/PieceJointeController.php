@@ -348,6 +348,7 @@ class PieceJointeController extends Zend_Controller_Action
 
             // Modèle
             $DBpieceJointe = new Model_DbTable_PieceJointe;
+            $DBsignature = new Model_DbTable_Signature;
             $DBitem = null;
 
             // On récupère la pièce jointe
@@ -383,6 +384,9 @@ class PieceJointeController extends Zend_Controller_Action
                 $DBitem->delete("ID_PIECEJOINTE = " . (int) $this->_request->idpj);
                 $pj->delete();
             }
+
+            $DBsignature->delete("ID_PIECEJOINTE = " . (int) $this->_request->idpj);
+
 
             $this->_helper->flashMessenger(array(
                 'context' => 'success',
@@ -542,6 +546,8 @@ class PieceJointeController extends Zend_Controller_Action
 
         $user = $service_user->find($this->_request->user_id);
         $service_signature->addToSign($this->_request->idpj,$user['ID_UTILISATEUR']);
+
+        error_log("Add Signer : " . $this->_request->user_id);
 
         if($this->_request->type !== "gestioncommission"){
             $this->_helper->redirector->gotoUrl($this->_request->type . '/piece-jointe/id/' . $this->_request->id);

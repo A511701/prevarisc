@@ -28,10 +28,10 @@
 
     <td>
         <?php if($pj['EXTENSION_PIECEJOINTE'] === '.pdf'): ?>
-            <ul id="signatures-list">
+            <ul id="signatures-list<?php echo $i ?>">
             <?php if(isset($pj["signatures"])): ?>
                 <?php foreach( $pj["signatures"] as $sig ) : ?>
-                    <li>
+                    <li id="<?php echo "sig" . $i . "_" . $sig["ID_UTILISATEUR"]?>" > 
                     <?php if(isset($sig["DATE_SIGNATURE"])): ?>
                         <span class="label label-success" style="min-width: 70px;" title="<?php echo $sig["DATE_SIGNATURE"] ?>">Signé</span>
                     <?php endif ?>
@@ -53,7 +53,7 @@
                     ?>
 
                     <?php if(!isset($sig["DATE_SIGNATURE"])) :  ?>
-                        <a style="float:right;" href="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'remove-signer', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type,'user_id' => $sig["ID_UTILISATEUR"])) ?>">Retirer</a>
+                        <a style="float:right;" href="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'remove-signer', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type,'user_id' => $sig["ID_UTILISATEUR"])) ?>"><i class="icon-remove" title="Retirer" id="<?php echo "user" . $i . "_" . $sig["ID_UTILISATEUR"]?>"></i></a>
                     <?php endif ?>
                     
                     
@@ -63,14 +63,13 @@
             <?php endif ?>
             </ul>
 
-            <form id="form-user<?php echo $i?>" class="user-search" action="<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'add-signer', 'id' => $this->id, 'idpj' => $pj['ID_PIECEJOINTE'], 'type' => $this->type)) ?>" method="post">
 
-                <div class="search-utilisateurs">
-                    <input name="user_id" id="user-search-field<?php echo $i?>" type='text' placeholder="Ajouter un utilisateur ..." value='' />
+            <div class="search-utilisateurs">
+                <input name="user_id" id="user-search-field<?php echo $i?>" type='text' placeholder="Ajouter un utilisateur ..." value='' />
+                <div id="idpj<?php echo $i ?>" style="display:none"><?php echo $pj['ID_PIECEJOINTE'] ?></div>
 
-                </div>
+            </div>
 
-            </form>
 
         <?php endif ?>
 
@@ -149,21 +148,38 @@
         },
         updater: function (item) {
 
+            // Récupération du numéro de la pièce jointe
             var count = $("div[class*='search-utilisateurs']").length;
             var result = -1;
             for (var i = 0; i<count;i++) {
                 if(document.contains(document.getElementById("user-search-field"+i))){
-                    console.log("#user-search-field"+i+" : "+$("#user-search-field"+i).val().trim());
                     if($("#user-search-field"+i).val().trim() != ""){
                         result = i;
                     }
                 }
             }
+
+            //Requête AJAX
             var userID = $(item).attr('data-id');
-            $("#user-search-field"+result).val(userID);
-            document.getElementById("form-user"+result).submit();
-            return;
+            var ID_PJ = $("#idpj"+result).html();
+            $.post(
+                "<?php echo $this->url(array('controller' => 'piece-jointe', 'action' => 'add-signer', 'id' => $this->id, 'type' => $this->type)) ?>",
+                {
+                    user_id : userID,
+                    idpj : ID_PJ
+                },
+                appendSignature,
+                'text'
+            );
+
+            // Mise à jour du HTML
+            $("#signatures-list"+result).append('<li><span class="label label-default" style="min-width: 70px; padding:none">Doit signer</span> '+item+'</li>');
+
+            function appendSignature(data){
+                console.log("Signature added");
+            }
         }
+
     });
 
 </script>
@@ -171,8 +187,26 @@
 
 <style>
 
-ul,li { list-style-type: none;
-        list-style-position:inside;
-        margin:0;
-        margin-bottom: :0; }
+ul,li
+{ 
+    list-style-type: none;
+    list-style-position:inside;
+    margin:0;
+    margin-bottom: :0;
+}
+
+ul li
+{
+    padding-top: 2px;
+}
+
+.search-utilisateurs{
+    padding-top: 3px;
+}
+
+li i
+{
+    float: right;
+}
+
 </style>
