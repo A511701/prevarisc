@@ -232,15 +232,12 @@ class Api_Service_Calendar
                 $corpus .= 'Aucune coordonées pour le service instructeur.';
             }
         }
-        
-        $lastVisite = new DateTime($ets["last_visite"]);
-        if ($lastVisite) {
-            $lastVisitestr = $lastVisite->format('d/m/Y');
-        } else {
-            $lastVisitestr = 'Aucune date.';
-        }
-        $corpus .= sprintf("Date de la dernière visite périodique : %s\r\n\r\n",
-                           $lastVisitestr);
+
+        $lastVisitestr = $ets && $ets["last_visite"] ? $ets["last_visite"] : 'Aucune date.';
+        $corpus .= sprintf("Date de la dernière visite périodique : %s%s",
+           $lastVisitestr,
+           self::LF.self::LF
+        );
 
         $corpus .= sprintf("Avis d'exploitation de l'établissement : %s%s",               
                             $this->getAvisEtablissement($commissionEvent, $ets),
