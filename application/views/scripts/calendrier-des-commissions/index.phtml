@@ -13,6 +13,13 @@
             <i class="icon-calendar"></i> Exporter pour Outlook
         </a>
     </li>
+    <?php if ($this->is_view_all) : ?>
+        <li>
+            <a id='viewAllLink'  href='#'>
+                <i class="icon-eye-open"></i> Voir tous les évènements
+            </a>
+        </li>
+    <?php endif ?>
     <?php if($this->array_commissions): ?>
         <?php if (getenv('PREVARISC_SECURITY_KEY') && getenv('PREVARISC_SECURITY_KEY') !== '') : ?>
             <li>
@@ -35,7 +42,7 @@
                     </li>
                   <?php endif ?>
                 <?php endforeach ?>
-                </li>            
+                </li>
             <?php endif ?>
         <?php endforeach ?>
     <?php endif ?>
@@ -69,17 +76,29 @@
 <div id="dialogComm" title="Planification commission" class='ui-helper-hidden' ></div>
 <script type="text/javascript">
 	$(document).ready( function() {
-                if($("#idCommission").val() != '')
-		{
-                    $(".commissionLink[data-value='"+$("#idCommission").val()+"'").click();
+            if ($("#idCommission").val() != '') {
+                $(".commissionLink[data-value='"+$("#idCommission").val()+"'").click();
+                $("#calendar").html('').afficheCalendar(null, 'calendrierComm');
+                $('#syncCal').show();
+                $('#syncCom').hide();                
+            }
+            $('.menu_dashboard').on({
+                click: function() {
+                    $("#calendar").html('').afficheCalendar(null, 'calendrierComm');
+                    $(".commissionLink").parent().removeClass('active');
+                    $('#syncCal').show();
+                    $('#syncCom').hide();
+                    $('#exportCom').hide();
+                    $(this).parent().addClass('active');
                 }
+            }, '#viewAllLink');
     	});
-
 	// Selection de la commission
         $(".commissionLink").live('click',function(e) {
             e.preventDefault();
             var $self = $(this);
             var idCommission = $self.attr('data-value');
+            $('#viewAllLink').parent().removeClass('active');
             $(".commissionLink").parent().removeClass('active');
             $self.parent().addClass('active');
             $("#infosCom").html("<input type='hidden' name='commissionId' id='commissionId' value='" + idCommission + "' />");
@@ -89,10 +108,15 @@
             $("#ordre_jour").button( "option", "disabled", false );
             $("h2.page-header").html('Calendrier de la '+$self.attr('data-type')+' de "'+$self.html().trim()+'"');
             $("#calendar").html('').afficheCalendar(idCommission,'calendrierComm');
+            $('#exportCom').show();
         });
-
 	( function($) {
 		$.fn.afficheCalendar = function(idComm,emplacement) {
+                    if (idComm === null || undefined === typeof(idComm)) {
+                        datas = { format: 'json' };
+                    } else {
+                        datas = { format: 'json', idComm: idComm };
+                    }
                     var calendar = $('#calendar').fullCalendar( {
                         buttonText: {
                             month: 'Mois',
@@ -138,10 +162,7 @@
                         events: function(start, end, callback) {
                             $.ajax({
                                 url: '/calendrier-des-commissions/recupevenement?start='+start.getTime()+"&end="+end.getTime(),
-                                data: {
-                                    format: 'json',
-                                    idComm: idComm
-                                },
+                                data: datas,
                                 success: function( result ) {
                                     var events = [];
                                     for( var x in result["items"] ) {
@@ -174,6 +195,9 @@
                         },
                         //Lorsque l'on selectionne une ou plusieurs dates on ouvre la boite de dialogue correspondante
                         select: function(start, end, allDay) {
+                            if (idComm === null || undefined === typeof(idComm)) {
+                                return false;
+                            }
                             var dateSelected = new Date(start);
                             // On empêche la selection d'un samedi ou d'un dimanche
                             //if( dateSelected.getDay() != 6 && dateSelected.getDay() != 0) {
@@ -186,8 +210,7 @@
                                                     $("#erreurDateFin").html('Veuillez renseigner une date de fin');
                                                     return false;
                                                 }
-
-                                                if($("#libelle_comm").val() == ''){
+                                                if ($("#libelle_comm").val() == ''){
                                                     $("#libelle_comm").focus();
                                                     return false;
                                                 }
@@ -246,10 +269,8 @@
                                         dd='0'+dd
                                 if(mm<10)
                                         mm='0'+mm
-
                                 $("#DATECOMM_INPUT").val(dd+"/"+mm+"/"+aa);
                                 $(".hideCalendar").click();
-
                             }
                             return false;
                         },
@@ -258,7 +279,6 @@
                             var tabDateSelect = event.end;
                             tabDateSelect = tabDateSelect.toString();
                             tabDateSplited = tabDateSelect.split(" ");
-
                             $.ajax({
                                     data: "idComm="+event.id+"&debut="+event.start+"&fin="+event.end,
                                     url: "/calendrier-des-commissions/deplacecommissiondate",
@@ -269,7 +289,6 @@
                             });
                         },
                         eventResize: function( event, jsEvent, ui, view ) {
-
                             //heure de fin change uniquement fonctionne uniquement sur la vue semaine et jour. Pas sur mois
                             var view = $("#calendar").fullCalendar('getView');
                             var vueInfo = view.title;
@@ -289,19 +308,14 @@
                             var date = $("#calendar").fullCalendar('getDate');
                             var month_int = date.getMonth()+1;
                             var year_int = date.getFullYear();
-                            $('#exportCom').attr('href', '/calendrier-des-commissions/exportoutlookmois/CommId/'+ $("#commissionId").val()+"/Mois/"+month_int+"/Annee/"+year_int);
-                            $('#exportCom').show();
+                            $('#exportCom').attr('href', '/calendrier-des-commissions/exportoutlookmois/CommId/'+ $("#commissionId").val()+"/Mois/"+month_int+"/Annee/"+year_int);                            
                             var host = window.location.host;
                             $('#syncCal').hide();
                             $('#syncCom').show();
                         }
                     });
 		};
-
 	})(jQuery);
-
-
-
 	// Dialogue standard
 	function my_dialog( url, data, callback ) {
 		// Récupération du contenu de la boite de dialogue
@@ -311,7 +325,6 @@
 			type:"POST",
 			success: function( result ) {
 				$("#dialogComm").html( result );
-
 				// On créé la boite de dialogue
 				$("#dialogComm").dialog({
 					resizable: false,
@@ -325,7 +338,6 @@
 								data: "&dateCommission="+$("#dateCommission").val()+"&commissionId="+$("#commissionId").val(),
 								type:"POST",
 								beforeSend: function(){
-
 								},
 								success: function(affichageResultat){
 									$("#dialogComm").html(affichageResultat);
@@ -345,14 +357,11 @@
 						}
 					}
 				});
-
 				if( callback )
 					callback();
 			}
 		});
 	}
-
-
 	$(".edition").live('click',function(){
 		//Gére la modification des champs
 		$("#dialogComm").buttonHide();
@@ -407,7 +416,6 @@
 		}
 		return false;
 	});
-
 	//Valide la modification du champ (avec update DB)
 	$(".validation").live('click',function(){
 		var tabDo = $(this).attr('id').split('_');
@@ -480,7 +488,6 @@
 		$("#dialogComm").buttonShow();
 		return false;
 	});
-
 	$(".annulation").live('click',function(){
 		var tabDo = $(this).attr('id').split('_');
 		var data;
@@ -528,7 +535,6 @@
 		$("#dialogComm").buttonShow();
 		return false;
 	}); //fin .annulation click
-
 	//permet de modifier la date par défaut à laquelle sont reliés toutes les autres dates
 	$(".dateDefaut").live('click',function(){
 		var tabId = $(this).attr('id').split('_');
@@ -581,7 +587,6 @@
 		});
 		return false;
 	});//fin #dateDefaut
-
 	//Permet la suppression de date(s)
 	$(".suppression").live('click',function(){
 		//permet de supprimer une date dans les cas d'une édition et d'une création
@@ -592,7 +597,6 @@
 			if(tabDo[2] == $("#dateCommission").val()){
 				//alert($("#listeDates").first("ul[id^=ligne_]").attr('id'));
 				//alert($("#listeDates ul:first").next("ul").attr('id'));
-
 			}
 			$.ajax({
 				data: data,
@@ -623,14 +627,12 @@
 		//compter le nombre de ligne pour autoriser ou non la périodicité
 		return false;
 	});
-
 	$("#validSupp").live('click',function(){
 		$.ajax({
 			url: "/calendrier-des-commissions/validsuppression",
 			data: $("#infosSuppDate").serialize(),
 			type:"POST",
 			beforeSend: function(){
-
 			},
 			success: function(affichageResultat){
 				$("#calendar").fullCalendar('refetchEvents');
@@ -642,10 +644,7 @@
 			}
 		});
 	});
-
 	$("#cancelSupp").live('click',function(){
 		$("#dialogComm").dialog('close').html('');
 	});
-
-
 </script>
