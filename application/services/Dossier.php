@@ -817,6 +817,46 @@ class Service_Dossier
        $dbDossier = new Model_DbTable_Dossier;
        return $dbDossier->getCommissionV2($idDossier);
     }
+<<<<<<< HEAD
+=======
+
+
+    public function delete($idDossier, $date = null, $uniqueEtab = false)
+    {
+        if (!$date) {
+           $date = new DateTime();
+        }
+        $DB_dossier = new Model_DbTable_Dossier();
+
+        $dossier = $DB_dossier->find($idDossier)->current();
+        $deleteDossier = true;
+        if ($uniqueEtab) {
+            $DB_etsDossier = new Model_DbTable_EtablissementDossier();
+            $deleteDossier = !(count($DB_etsDossier->getEtablissementListe($idDossier)) > 1);
+        }
+        if ($deleteDossier) {
+            $dossier->DATESUPPRESSION_DOSSIER = $date->format('Y-m-d');
+
+            //suppression de la date de passage en commission
+            $dbAffectDossier = new Model_DbTable_DossierAffectation();
+            $affectDossier = $dbAffectDossier->deleteDateDossierAffect($idDossier);
+
+            $dossier->save();
+        }
+    }
+
+    public function deleteByEtab($idEtablissement)
+    {
+        $date = new DateTime();
+        $DB_dossier = new Model_DbTable_Dossier();
+
+        $dossiers = $DB_dossier->getDossiersEtab($idEtablissement);
+
+        foreach ($dossiers as $dossier) {
+            $this->delete($dossier['ID_DOSSIER'], $date, true);
+        }
+    }
+>>>>>>> f04be14... Fixe [#3170] Suppression du dossier dans l'odre du jour de la commission
     
     public function getPreventionniste($idDossier) {
         $DB_prev = new Model_DbTable_DossierPreventionniste;
